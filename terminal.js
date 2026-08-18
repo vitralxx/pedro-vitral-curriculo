@@ -87,10 +87,18 @@
   }
 
   const ERROS = [
-    cmd => `bash: ${cmd}: comando não encontrado. Tenta "help" — é literalmente o que ele faz.`,
+    cmd => `bash: ${cmd}: comando não encontrado. Tenta "help", é literalmente o que ele faz.`,
     cmd => `${cmd}: não. Mas admiro a iniciativa.`,
     cmd => `zsh: command not found: ${cmd}. Meu currículo é bom, não é onisciente.`,
     cmd => `Erro 404: ${cmd} não existe. "help" existe.`,
+    cmd => `${cmd}? Rolei o dado e deu 1. Falha crítica.`,
+    cmd => `Procurei "${cmd}" no inventário e não achei. Tenta "help" pra ver o que tem.`,
+    cmd => `Esse comando eu ainda não aprendi. Faltou XP.`,
+    cmd => `Copiei "${cmd}" do StackOverflow e mesmo assim não rolou.`,
+    cmd => `Nem com sudo, chefe.`,
+    cmd => `${cmd} deve ter ficado numa branch que eu esqueci de dar merge.`,
+    cmd => `Deu ruim com "${cmd}". Mas fica tranquilo, não foi em produção.`,
+    cmd => `Não entendi "${cmd}". Digita "help" que eu te mostro o mapa.`,
   ];
 
   /* ======================================================================
