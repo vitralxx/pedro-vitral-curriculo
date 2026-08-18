@@ -1,0 +1,725 @@
+/* ==========================================================================
+   Currículo interativo — Pedro Vitral
+   Estética: terminal CRT, fósforo P1 calibrado, tela única.
+   Escrito à mão. Sem framework, sem dependência, sem @import externo.
+
+   Sumário
+     1. Tokens          5. Acessibilidade      9. Terminal (prompt, ghost, sugestões)
+     2. Reset           6. Árvore              10. Chips
+     3. Base            7. Blocos e tipografia 11. Chrome (PDF, modo, som)
+     4. A tela          8. Projetos            12. Modo Moderno
+                                               13. Mobile
+                                               14. Impressão
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. TOKENS
+   Tudo que se ajusta mora aqui. Mudou o brilho do fósforo? Uma linha.
+   -------------------------------------------------------------------------- */
+:root {
+  /* Fósforo P1 calibrado.
+     Contraste medido contra --fundo:
+       --verde-alto   15,4:1   títulos, prompt, ênfase
+       --verde-medio  11,0:1   corpo de texto
+       --verde-baixo   4,6:1   metadados, datas, guias de árvore
+     4,5:1 é o mínimo WCAG AA. --verde-baixo está no limite de propósito:
+     não escureça mais, quebra a legibilidade. */
+  --fundo:        #050b07;
+  --verde-alto:   #7dffb0;
+  --verde-medio:  #4fd98a;
+  --verde-baixo:  #2a8a5c;
+
+  /* Glow. Forte só em título, prompt e chip.
+     Corpo de texto NÃO leva glow — halo em parágrafo longo é ilegível. */
+  --glow-forte:   0 0 6px rgba(125, 255, 176, .35);
+  --glow-fraco:   0 0 2px rgba( 79, 217, 138, .20);
+
+  /* Camada de tela */
+  --scanline-cor:     rgba(0, 0, 0, .22);
+  --scanline-periodo: 3px;
+  --vinheta:          rgba(0, 0, 0, .55);
+
+  /* Tipografia. Monoespaçada de sistema: zero download, zero dependência.
+     Fonte pixelada tipo VT323 foi descartada — linda em 3 palavras,
+     insuportável em 3 parágrafos, e este currículo é feito de parágrafos. */
+  --fonte: ui-monospace, "Cascadia Mono", "SFMono-Regular", "Menlo",
+           "Consolas", "DejaVu Sans Mono", monospace;
+  --texto:      1rem;
+  --entrelinha: 1.65;
+  --linha:      calc(1em * var(--entrelinha));  /* altura de uma linha */
+
+  /* Espaçamento em escala, não em números soltos */
+  --e1: .25rem;
+  --e2: .5rem;
+  --e3: 1rem;
+  --e4: 1.5rem;
+  --e5: 2.5rem;
+
+  /* Largura de leitura. 74ch é o teto do confortável em monoespaçada. */
+  --largura: 74ch;
+
+  /* Altura da barra de botões fixa: o console grudado no rodapé precisa
+     saber de quanto se afastar para não ficar por baixo dela. */
+  --altura-chrome: 3.3rem;
+}
+
+/* --------------------------------------------------------------------------
+   2. RESET mínimo — só o que atrapalha
+   -------------------------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+body, h1, h2, h3, h4, p, ul, li, figure { margin: 0; padding: 0; }
+
+ul { list-style: none; }
+
+a { color: inherit; }
+
+button { font: inherit; color: inherit; background: none; border: 0; }
+
+/* --------------------------------------------------------------------------
+   3. BASE
+   -------------------------------------------------------------------------- */
+html {
+  background: var(--fundo);   /* pinta além do body, evita faixa branca no overscroll */
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--fonte);
+  font-size: var(--texto);
+  line-height: var(--entrelinha);
+  color: var(--verde-medio);
+  background: var(--fundo);
+  min-height: 100vh;
+
+  padding: var(--e5) var(--e4) calc(var(--e5) * 3);  /* fundo extra: chrome fixo */
+  max-width: calc(var(--largura) + var(--e5) * 2);
+  margin-inline: auto;
+
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Só para leitor de tela: some da tela, continua no fluxo de acessibilidade.
+   NÃO use display:none — isso esconde do leitor de tela também. */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Link de pular: invisível até receber foco por teclado */
+.pular {
+  position: absolute;
+  left: -9999px;
+  z-index: 10000;
+  background: var(--fundo);
+  color: var(--verde-alto);
+  border: 1px solid var(--verde-alto);
+  padding: var(--e2) var(--e3);
+}
+.pular:focus { left: var(--e3); top: var(--e3); }
+
+/* Foco visível em tudo que recebe teclado. Nunca remover sem substituir. */
+:focus-visible {
+  outline: 2px solid var(--verde-alto);
+  outline-offset: 2px;
+}
+
+a {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: .25em;
+}
+a:hover, a:focus-visible {
+  color: var(--verde-alto);
+  text-decoration-style: solid;
+  text-shadow: var(--glow-fraco);
+}
+
+/* --------------------------------------------------------------------------
+   4. A TELA
+   Duas camadas fixas por cima de tudo. pointer-events:none é obrigatório:
+   sem isso a moldura intercepta todo clique e a página vira enfeite morto.
+   -------------------------------------------------------------------------- */
+body::before {                       /* scanlines */
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--scanline-cor) 0 1px,
+    transparent 1px var(--scanline-periodo)
+  );
+  animation: cintilar 5.5s ease-in-out infinite;
+}
+
+body::after {                        /* vinheta + moldura */
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 52%, var(--vinheta) 100%);
+  box-shadow: inset 0 0 8vmin 2vmin rgba(0, 0, 0, .7);
+  border-radius: 2vmin;
+}
+
+/* Flicker de tubo. Amplitude minúscula de propósito — o objetivo é incomodar
+   o olho de leve, não anunciar que existe uma animação. */
+@keyframes cintilar {
+  0%, 100% { opacity: 1;    }
+  50%      { opacity: .965; }
+}
+
+/* --------------------------------------------------------------------------
+   5. ACESSIBILIDADE — não é opcional
+   Tela verde piscando dispara enxaqueca em gente real, e uma delas pode ser
+   quem lê seu currículo. Quem pediu menos movimento, recebe menos movimento.
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   6. ÁRVORE
+   O galho (├── └──) é caractere; o tronco vertical é borda.
+   Precisa dos dois: caractere não acompanha texto que quebra em várias linhas,
+   borda acompanha. A sintaxe  content: "├──" / ""  entrega string vazia ao
+   leitor de tela — o desenho é visual, não é informação.
+   -------------------------------------------------------------------------- */
+.arvore ul { padding-left: 1.5ch; }
+
+.arvore :is(li, .projeto) {
+  position: relative;
+  padding-left: 3.5ch;
+  margin-block: var(--e1);
+}
+
+.arvore :is(li, .projeto)::before {          /* galho */
+  content: "├──" / "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--verde-baixo);
+  white-space: pre;
+}
+.arvore :is(li, .projeto):last-child::before { content: "└──" / ""; }
+
+.arvore :is(li, .projeto):not(:last-child)::after {   /* tronco */
+  content: "";
+  position: absolute;
+  left: .5ch;                     /* centro do glifo ├, em monoespaçada */
+  top: 0;                         /* sobrepõe o traço do próprio glifo */
+  bottom: calc(var(--e2) * -1);   /* invade o glifo do irmão seguinte */
+  border-left: 1px solid var(--verde-baixo);
+}
+/* Por que sobrepor em vez de encostar: o traço vertical do glifo ├ não ocupa
+   a altura toda da linha, sobra folga em cima e embaixo. Encostar deixa buraco
+   em item de uma linha só. Sobrepondo, borda e glifo são da mesma cor no mesmo
+   x — leem como uma linha contínua, independente da altura do item. */
+
+/* --------------------------------------------------------------------------
+   7. BLOCOS E TIPOGRAFIA
+   -------------------------------------------------------------------------- */
+h1 {
+  font-size: clamp(1.35rem, 4.5vw, 2rem);
+  line-height: 1.25;
+  color: var(--verde-alto);
+  text-shadow: var(--glow-forte);
+  letter-spacing: .06em;          /* monoespaçada em caixa grande fica apertada */
+  margin-bottom: var(--e2);
+}
+
+.topo { margin-bottom: var(--e5); }
+
+.headline {
+  color: var(--verde-medio);
+  margin-bottom: var(--e3);
+}
+
+.bloco { margin-block: var(--e5); }
+
+/* summary como flex: mata a setinha padrão e alinha o marcador com o título */
+summary {
+  display: flex;
+  align-items: baseline;
+  gap: 1ch;
+  cursor: pointer;
+  list-style: none;
+}
+summary::-webkit-details-marker { display: none; }
+summary::marker { content: ""; }
+
+.bloco > summary { border-bottom: 1px dashed var(--verde-baixo); padding-bottom: var(--e2); }
+
+summary::before {
+  content: "[+]" / "";
+  color: var(--verde-baixo);
+  flex: none;
+}
+details[open] > summary::before { content: "[-]" / ""; }
+
+summary:hover::before,
+summary:focus-visible::before { color: var(--verde-alto); }
+
+h3 {
+  font-size: 1.05rem;
+  color: var(--verde-alto);
+  text-shadow: var(--glow-forte);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+h4 {
+  font-size: 1rem;
+  color: var(--verde-medio);
+  letter-spacing: .04em;
+}
+details[open] > summary h4 { color: var(--verde-alto); text-shadow: var(--glow-fraco); }
+
+.corpo { padding-top: var(--e3); }
+
+p {
+  max-width: var(--largura);
+  margin-bottom: var(--e3);
+}
+p:last-child { margin-bottom: 0; }
+
+/* O comando ao lado do título. Deve parecer digitável, não decorativo —
+   é a dica visual que ensina o leitor que existe um terminal aqui. */
+.cmd {
+  font-size: .85em;
+  color: var(--verde-baixo);
+  letter-spacing: 0;
+  text-transform: none;
+  text-shadow: none;
+  white-space: nowrap;
+}
+.cmd::before { content: "$ " / ""; }
+
+.periodo, .usado-em {
+  color: var(--verde-baixo);
+  font-size: .9em;
+}
+.usado-em::before { content: " → " / ""; }
+
+strong { color: var(--verde-alto); font-weight: 700; }
+
+/* --------------------------------------------------------------------------
+   8. PROJETOS
+   -------------------------------------------------------------------------- */
+.projeto > details > summary { padding-block: var(--e1); }
+
+.projeto .corpo { padding-top: var(--e2); padding-bottom: var(--e3); }
+
+.problema strong, .solucao strong, .porque strong {
+  color: var(--verde-alto);
+  text-shadow: var(--glow-fraco);
+}
+
+/* Tecnologias: linha de tags, não lista. Anula as guias de árvore herdadas. */
+.tec {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e2);
+  padding-left: 0;
+  margin-top: var(--e3);
+}
+/* Sem depender de .arvore como ancestral: o terminal emite o <article> de um
+   projeto isolado, e aí esse ancestral não existe. Vem depois da §6 no
+   arquivo, então vence as guias de árvore por ordem, não por especificidade. */
+.tec li {
+  position: static;
+  padding: 0 var(--e2);
+  margin: 0;
+  border: 1px solid var(--verde-baixo);
+  color: var(--verde-baixo);
+  font-size: .85em;
+}
+.tec li::before,
+.tec li::after { content: none; border: 0; }
+
+/* --------------------------------------------------------------------------
+   9. TERMINAL — prompt, ghost text, sugestões
+   -------------------------------------------------------------------------- */
+/* O console gruda no rodapé da janela enquanto a saída rola por trás.
+   sticky e não fixed: quando a página é curta ele fica no fluxo normal,
+   e só se prende quando a saída cresce além da tela. */
+.console {
+  position: sticky;
+  bottom: var(--altura-chrome);
+  z-index: 50;
+  margin-top: var(--e5);
+  padding-block: var(--e3);
+  background: var(--fundo);
+  border-top: 1px dashed var(--verde-baixo);
+}
+
+.linha-topo {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--e2) var(--e3);
+  margin-bottom: var(--e2);
+}
+
+.convite {
+  color: var(--verde-alto);
+  text-shadow: var(--glow-fraco);
+  margin-bottom: 0;
+}
+
+/* Checkbox em caixa de terminal: [x] / [ ]. O input nativo continua lá,
+   invisível mas focável — é ele que dá teclado e leitor de tela de graça. */
+.opcoes {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e1) var(--e3);
+}
+
+.opcao {
+  display: inline-flex;
+  align-items: baseline;
+  gap: .75ch;
+  cursor: pointer;
+  color: var(--verde-baixo);
+  font-size: .9em;
+  white-space: nowrap;
+  user-select: none;
+}
+.opcao:hover { color: var(--verde-alto); }
+.opcao input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.opcao .marca::before { content: "[ ]"; }
+.opcao input:checked ~ .marca::before { content: "[x]"; }
+.opcao input:checked ~ .marca { color: var(--verde-alto); text-shadow: var(--glow-fraco); }
+.opcao input:focus-visible ~ .marca { outline: 2px solid var(--verde-alto); outline-offset: 2px; }
+/* Some depois do primeiro comando do usuário: já cumpriu a função de ensinar,
+   e o console é sticky — cada linha ali custa altura de tela. */
+.convite.sumiu { display: none; }
+
+.linha-prompt {
+  display: flex;
+  align-items: baseline;
+  gap: 1ch;
+  border: 1px solid var(--verde-baixo);
+  padding: var(--e2) var(--e3);
+}
+.linha-prompt:focus-within { border-color: var(--verde-alto); box-shadow: var(--glow-forte); }
+
+.prompt {
+  color: var(--verde-alto);
+  text-shadow: var(--glow-forte);
+  flex: none;
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* O ghost text fica ATRÁS do input, alinhado caractere a caractere.
+   Só funciona porque a fonte é monoespaçada e ambos herdam a mesma métrica. */
+.campo { position: relative; flex: 1 1 auto; min-width: 0; }
+
+.campo input, .ghost {
+  font: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+  padding: 0;
+  border: 0;
+  margin: 0;
+}
+
+.ghost {
+  position: absolute;
+  inset: 0;
+  color: var(--verde-baixo);
+  pointer-events: none;
+  white-space: pre;
+  overflow: hidden;
+}
+
+.campo input {
+  width: 100%;
+  background: transparent;
+  color: var(--verde-alto);
+  caret-color: var(--verde-alto);
+  text-shadow: var(--glow-forte);
+  outline: none;              /* o foco aparece na borda de .linha-prompt */
+  position: relative;
+}
+
+#sugestoes {
+  border: 1px solid var(--verde-baixo);
+  border-top: 0;
+  background: var(--fundo);
+  max-height: 40vh;
+  overflow-y: auto;
+}
+#sugestoes li { padding: var(--e1) var(--e3); cursor: pointer; }
+#sugestoes li[aria-selected="true"],
+#sugestoes li:hover {
+  background: var(--verde-baixo);
+  color: var(--fundo);
+  text-shadow: none;
+}
+
+/* No ghost, a parte já digitada fica invisível mas ocupa espaço — é o que
+   alinha o complemento com o cursor. Só funciona em fonte monoespaçada. */
+.ghost .ja { visibility: hidden; }
+
+/* O cursor vive DENTRO da camada ghost, depois do texto já digitado — que
+   fica invisível mas ocupa largura. Em monoespaçada isso põe o bloco exatamente
+   onde estaria o cursor de verdade. Com o campo focado o ghost é apagado e
+   quem manda é o cursor nativo: dois cursores na mesma linha é confusão. */
+.ghost .cursor {
+  color: var(--verde-alto);
+  text-shadow: var(--glow-forte);
+  animation: piscar 1.1s step-end infinite;
+}
+@keyframes piscar { 0%, 49% { opacity: 1 } 50%, 100% { opacity: 0 } }
+
+/* --------------------------------------------------------------------------
+   9b. SAÍDA EMITIDA
+   #fonte é a fonte da verdade: visível sem JavaScript, escondida com ele —
+   mas sempre presente no DOM, porque robô de triagem de currículo lê o HTML
+   e não executa script.
+   -------------------------------------------------------------------------- */
+html.js #fonte { display: none; }
+
+.entrada {
+  margin-top: var(--e4);
+  margin-bottom: 0;
+}
+.entrada:first-child { margin-top: 0; }
+
+.prompt-eco { color: var(--verde-alto); text-shadow: var(--glow-forte); user-select: none; }
+.eco        { color: var(--verde-alto); text-shadow: var(--glow-forte); }
+
+.resposta { margin-top: var(--e2); }
+.resposta > .bloco { margin-top: 0; }
+
+.erro { color: var(--verde-alto); }
+
+/* Durante a digitação, tags e dicas de comando ficam escondidas: senão as
+   caixas vazias aparecem todas de uma vez antes do texto chegar nelas. */
+.digitando :is(.tec, .cmd) { visibility: hidden; }
+
+/* --------------------------------------------------------------------------
+   10. CHIPS
+   Equivalente clicável de cada comando. Teclado virtual em terminal é
+   inutilizável — no celular, os chips são a interface de verdade.
+   -------------------------------------------------------------------------- */
+#chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e2);
+  margin-top: var(--e2);
+}
+
+.chip {
+  border: 1px solid var(--verde-baixo);
+  color: var(--verde-medio);
+  padding: var(--e1) var(--e2);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color .12s, border-color .12s, box-shadow .12s;
+}
+.chip::before { content: "$ " / ""; color: var(--verde-baixo); }
+.chip:hover, .chip:focus-visible {
+  color: var(--verde-alto);
+  border-color: var(--verde-alto);
+  text-shadow: var(--glow-fraco);
+  box-shadow: var(--glow-forte);
+}
+
+/* --------------------------------------------------------------------------
+   11. CHROME — PDF, modo, som
+   Canto inferior direito: não colide com o h1 nem com o texto.
+   Fica sob as scanlines (z-index menor), mas clicável — a camada de tela
+   tem pointer-events:none.
+   -------------------------------------------------------------------------- */
+/* Padrão: barra fixa no rodapé, largura total. Nunca colide com o texto.
+   Só vira coluna flutuante quando existe margem lateral de sobra (§13). */
+.chrome {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid var(--verde-baixo);
+  background: var(--fundo);
+}
+.chrome .btn { flex: 1 1 0; justify-content: center; border: 0; }
+.chrome .btn + .btn { border-left: 1px solid var(--verde-baixo); }
+
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 1ch;
+  border: 1px solid var(--verde-baixo);
+  background: var(--fundo);
+  color: var(--verde-medio);
+  padding: var(--e2) var(--e3);
+  font-size: .85rem;
+  letter-spacing: .06em;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color .12s, border-color .12s, box-shadow .12s;
+}
+.btn:hover, .btn:focus-visible {
+  color: var(--verde-alto);
+  border-color: var(--verde-alto);
+  box-shadow: var(--glow-forte);
+}
+
+.btn-pdf {
+  color: var(--verde-alto);
+  border-color: var(--verde-alto);
+  text-shadow: var(--glow-fraco);
+}
+
+.tecla {
+  border: 1px solid currentColor;
+  padding: 0 .4ch;
+  font-size: .8em;
+  opacity: .8;
+  flex: none;
+}
+
+.rodape {
+  margin-top: var(--e5);
+  padding-top: var(--e3);
+  border-top: 1px dashed var(--verde-baixo);
+  color: var(--verde-baixo);
+  font-size: .85em;
+}
+
+/* --------------------------------------------------------------------------
+   12. MODO MODERNO
+   O JS põe data-modo="moderno" no <html>. Como tudo é token, o tema inteiro
+   troca aqui. É a saída de emergência: quem achar o CRT cansativo tem um
+   clique em vez de fechar a aba.
+   -------------------------------------------------------------------------- */
+html[data-modo="moderno"] {
+  --fundo:       #f6f8f7;
+  --verde-alto:  #0f2e1e;   /* títulos      — 15,1:1 */
+  --verde-medio: #24352c;   /* corpo        — 12,3:1 */
+  --verde-baixo: #5b7267;   /* metadados    —  4,8:1 */
+  --glow-forte:  none;
+  --glow-fraco:  none;
+  --fonte: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  color-scheme: light;
+}
+
+html[data-modo="moderno"] body::before,
+html[data-modo="moderno"] body::after { display: none; }
+
+/* Sem monoespaçada, o alinhamento de caractere não vale mais: marcador comum */
+html[data-modo="moderno"] .arvore :is(li, .projeto)::before { content: "•" / ""; }
+html[data-modo="moderno"] .arvore :is(li, .projeto):last-child::before { content: "•" / ""; }
+html[data-modo="moderno"] .arvore :is(li, .projeto)::after { content: none; }
+html[data-modo="moderno"] .arvore :is(li, .projeto) { padding-left: 2ch; }
+
+html[data-modo="moderno"] :is(.cmd, .prompt, .campo input, .chip, .btn) {
+  font-family: ui-monospace, "Consolas", monospace;
+}
+html[data-modo="moderno"] h1 { letter-spacing: -.01em; }
+html[data-modo="moderno"] h3 { letter-spacing: .04em; }
+
+/* --------------------------------------------------------------------------
+   13. MOBILE
+   No celular a largura é o recurso escasso. Vinheta e padding recuam,
+   e o chrome vai pro rodapé em linha, sem tampar texto.
+   -------------------------------------------------------------------------- */
+@media (max-width: 600px) {
+  :root {
+    --vinheta: rgba(0, 0, 0, .35);
+    --scanline-cor: rgba(0, 0, 0, .14);
+    --largura: 100%;
+  }
+  body { padding: var(--e4) var(--e3) calc(var(--e5) * 2.5); }
+  body::after { box-shadow: inset 0 0 4vmin 1vmin rgba(0, 0, 0, .6); }
+
+  .chrome .btn { padding: var(--e3) var(--e1); font-size: .8rem; }
+  .tecla { display: none; }        /* não existe tecla F1 em celular */
+
+  .arvore :is(li, .projeto) { padding-left: 2.5ch; }
+  .arvore ul { padding-left: .5ch; }
+}
+
+/* Tela larga: existe margem lateral sobrando, o chrome sai do fluxo do texto
+   e vira coluna flutuante na goteira direita. Só aqui — abaixo disso ele
+   cobriria o conteúdo, que foi exatamente o bug da primeira versão. */
+@media (min-width: 1150px) {
+  .chrome {
+    left: auto;
+    right: var(--e4);
+    bottom: var(--e4);
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--e2);
+    border-top: 0;
+    background: none;
+  }
+  .chrome .btn {
+    flex: none;
+    justify-content: flex-start;
+    border: 1px solid var(--verde-baixo);
+    background: var(--fundo);
+  }
+  .chrome .btn-pdf { border-color: var(--verde-alto); }
+  body { padding-bottom: var(--e5); }
+
+  /* Aqui a barra de botões flutua na goteira, não ocupa o rodapé:
+     o console pode encostar no fundo da janela. */
+  .console { bottom: 0; }
+}
+
+/* --------------------------------------------------------------------------
+   14. IMPRESSÃO
+   Papel é preto no branco. O CRT não atravessa — e quem imprime o currículo
+   é exatamente quem decide sua contratação.
+   -------------------------------------------------------------------------- */
+@media print {
+  body::before, body::after { display: none !important; }
+
+  html, body {
+    background: #fff;
+    color: #000;
+    max-width: none;
+    padding: 0;
+    font-family: Georgia, "Times New Roman", serif;
+  }
+
+  h1, h3, h4, strong, .prompt { color: #000; text-shadow: none; }
+  .cmd, .periodo, .usado-em { color: #444; }
+
+  /* Some tudo que só existe na tela */
+  .chrome, .pular, #chips, #terminal-form, #sugestoes, .rodape { display: none !important; }
+
+  summary::before { content: "" / ""; }
+  summary { border-bottom: 1px solid #000 !important; }
+
+  /* Guias de árvore não fazem sentido em papel */
+  .arvore :is(li, .projeto)::before { content: "•" / ""; color: #000; }
+  .arvore :is(li, .projeto)::after { content: none; }
+
+  .arvore .tec li { border-color: #666; color: #333; }
+
+  a { color: #000; text-decoration: underline; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; color: #555; }
+
+  .bloco { break-inside: avoid; margin-block: 1.2em; }
+  .projeto { break-inside: avoid; }
+}

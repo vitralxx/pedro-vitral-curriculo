@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<!--
+  Currículo interativo — Pedro Vitral
+  Escrito à mão. Sem framework, sem dependência.
+
+  Arquitetura do conteúdo:
+    #fonte  — o currículo completo em HTML. Fonte da verdade.
+              Visível quando não há JavaScript; escondido (mas presente no DOM,
+              e portanto legível por robôs de triagem) quando há.
+    #saida  — vazio no HTML. O terminal.js emite aqui, clonando de #fonte.
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Curriculo Pedro Vitral</title>
+  <meta name="description" content="Currículo interativo com terminal. Bacharelado em Inteligência Artificial, PUC-Rio.">
+  <link rel="stylesheet" href="estilo.css">
+  <!--
+    Inline e no <head> de propósito: precisa rodar ANTES da primeira pintura.
+    Em arquivo externo, o currículo inteiro apareceria e sumiria num piscar.
+  -->
+  <script>document.documentElement.className = 'js';</script>
+</head>
+<body>
+
+<a class="pular" href="#saida">Pular para o currículo</a>
+
+<div class="chrome">
+  <a class="btn btn-pdf" href="curriculo-pedro.pdf" download>
+    <span class="tecla">F1</span> BAIXAR PDF
+  </a>
+  <button class="btn" id="btn-modo" type="button" hidden aria-pressed="false">
+    <span class="tecla">F2</span> MODO: RETRO
+  </button>
+  <button class="btn" id="btn-som" type="button" hidden aria-pressed="false">
+    <span class="tecla">F3</span> SOM: OFF
+  </button>
+</div>
+
+<header class="topo">
+  <h1>Pedro Carvalho Lamarca Vitral</h1>
+  <p class="headline" id="headline">
+    Cursando Inteligência Artificial, PUC-Rio. Autodidata desde criança.
+  </p>
+
+  <ul class="arvore">
+    <li>hoje transito entre
+      <ul>
+        <li>Modelagem de problemas complexos, através de grafos e sistemas personalizados</li>
+        <li>Machine Learning, treinamento autônomo de redes neurais e implementação de agentes llm no fluxo de trabalho</li>
+        <li>Desenvolvimento de Software, pelo domínio de linguagens como Python e JavaScript</li>
+      </ul>
+    </li>
+    <li>3 objetivos atuais
+      <ul>
+        <li>Estudar novas ferramentas modernas para desenvolvimento digital</li>
+        <li>Estabelecer conexões profissionais duradouras</li>
+        <li>Ganhar experiência empresarial no mercado</li>
+      </ul>
+    </li>
+  </ul>
+</header>
+
+<main>
+
+  <section id="terminal" aria-labelledby="terminal-titulo">
+    <h2 id="terminal-titulo" class="sr-only">Terminal</h2>
+
+    <!-- Vazio de propósito. O terminal.js emite aqui.
+         Sem aria-live: uma região viva que muda caractere a caractere faz o
+         leitor de tela anunciar centenas de fragmentos. Quem anuncia é #anuncio. -->
+    <div id="saida"></div>
+
+    <!-- Invisível na tela, viva para leitor de tela. Recebe o texto completo
+         de cada resposta de uma vez só, quando a digitação termina. -->
+    <div id="anuncio" class="sr-only" role="status" aria-live="polite"></div>
+
+    <!-- Grudado no rodapé da janela: o recrutador tem que VER o comando sendo
+         escrito, senão nunca entende que digitar libera conteúdo. -->
+    <div class="console">
+    <form id="terminal-form" hidden>
+      <div class="linha-topo">
+        <p class="convite">Este currículo responde a comandos. Experimente:</p>
+        <!-- O mecanismo de parada que a WCAG 2.2.2 exige para conteúdo em
+             movimento. Visível desde o primeiro segundo, e é ele que substitui
+             a antiga detecção automática de prefers-reduced-motion. -->
+        <div class="opcoes">
+          <!-- autocomplete="off": sem isso o navegador restaura o estado das
+               caixas ao recarregar, por cima do que o script já decidiu, e o
+               desenho passa a mentir sobre o comportamento real. -->
+          <label class="opcao">
+            <input type="checkbox" id="auto-type" checked autocomplete="off">
+            <span class="marca" aria-hidden="true"></span>auto-type
+          </label>
+          <label class="opcao">
+            <input type="checkbox" id="text-animation" checked autocomplete="off">
+            <span class="marca" aria-hidden="true"></span>text-animation
+          </label>
+        </div>
+      </div>
+      <div class="linha-prompt">
+        <label for="cmd" class="prompt">comando:&gt;</label>
+        <div class="campo">
+          <span class="ghost" id="ghost" aria-hidden="true"></span>
+          <input id="cmd" name="cmd" type="text" autocomplete="off" autocapitalize="off"
+                 spellcheck="false" aria-describedby="dica-teclado"
+                 aria-autocomplete="list" aria-controls="sugestoes" aria-expanded="false">
+        </div>
+      </div>
+      <ul id="sugestoes" role="listbox" aria-label="Comandos sugeridos" hidden></ul>
+      <p id="dica-teclado" class="sr-only">Tab aceita a sugestão. Setas para cima e para baixo navegam no histórico.</p>
+    </form>
+
+    <!-- Sem JS: âncoras de verdade, rolam até o bloco dentro de #fonte.
+         Com JS: o clique é interceptado e o data-cmd é executado. -->
+    <nav id="chips" aria-label="Comandos do terminal">
+      <a class="chip" href="#perfil"   data-cmd="whoami">whoami</a>
+      <a class="chip" href="#formacao" data-cmd="edu">edu</a>
+      <a class="chip" href="#projetos" data-cmd="projects">projects</a>
+      <a class="chip" href="#stack"    data-cmd="skills">skills</a>
+      <a class="chip" href="#idiomas"  data-cmd="language">language</a>
+      <a class="chip" href="#contato"  data-cmd="contact">contact</a>
+      <a class="chip" href="#ajuda"    data-cmd="help">help</a>
+    </nav>
+    </div><!-- /.console -->
+  </section>
+
+  <!-- ======================================================================
+       #fonte — o currículo completo. Fonte da verdade do terminal.
+       ====================================================================== -->
+  <div id="fonte">
+
+    <details class="bloco" id="perfil" open>
+      <summary><h3>Perfil <code class="cmd">whoami</code></h3></summary>
+      <div class="corpo">
+        <p>
+          Autodidata em processo de graduação acadêmica em Inteligência Artificial
+          na PUC-Rio. Sou entusiasta da tecnologia desde que me recordo:
+        </p>
+        <ul class="arvore">
+          <li>desenvolvendo jogos em C# na plataforma
+              <a href="https://unity.com/pt" target="_blank" rel="noopener">Unity</a></li>
+          <li>criando projetos pessoais de maneira independente em linguagens como
+              Python e JavaScript</li>
+          <li>participando recorrentemente de fóruns de programação como
+              <a href="https://www.reddit.com/" target="_blank" rel="noopener">Reddit</a> e
+              <a href="https://stackoverflow.com" target="_blank" rel="noopener">StackOverflow</a></li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="bloco" id="formacao" open>
+      <summary><h3>Formação <code class="cmd">edu</code></h3></summary>
+      <div class="corpo">
+        <ul class="arvore">
+          <li>
+            <strong>PUC-Rio</strong> — Bacharelado em Inteligência Artificial
+            <span class="periodo">2025.2 – previsão 2030.1</span>
+          </li>
+          <li>
+            <strong>CEFET/RJ</strong> — Bacharelado em Engenharia da Computação
+            <span class="periodo">2025.2 – indefinido</span>
+          </li>
+          <li>
+            <strong>Layton Christian Academy</strong> — intercâmbio, Utah, Estados Unidos
+            <span class="periodo">2023</span>
+          </li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="bloco" id="projetos" open>
+      <summary><h3>Projetos <code class="cmd">projects</code></h3></summary>
+      <div class="corpo arvore arvore-projetos">
+
+        <article class="projeto" id="projeto-agenda-viert">
+          <details>
+            <summary><h4>agenda-viert <code class="cmd">projects/agenda-viert</code></h4></summary>
+            <div class="corpo">
+              <p class="problema"><strong>Problema:</strong> [PREENCHER]</p>
+              <p class="solucao"><strong>Solução:</strong> [PREENCHER]</p>
+              <p class="porque"><strong>Por quê:</strong> [PREENCHER]</p>
+              <ul class="tec"><li>[PREENCHER]</li></ul>
+            </div>
+          </details>
+        </article>
+
+        <article class="projeto" id="projeto-cubagem-stone">
+          <details>
+            <summary><h4>cubagem-stone <code class="cmd">projects/cubagem-stone</code></h4></summary>
+            <div class="corpo">
+              <p class="problema">
+                <strong>Problema:</strong> A cubagem correta de um produto é o que define o custo de frete.
+                Contudo, marketplaces como Mercado Livre e Amazon não exigem as dimensões do item aos
+                vendedores; quando exigem, frequentemente as proporções são imprecisas. Sem esse dado
+                confiável, não há como otimizar a embalagem nem prever o custo logístico.
+              </p>
+              <p class="solucao">
+                <strong>Solução:</strong> Aplicação web com agente LLM que infere as dimensões de um produto
+                a partir da descrição em texto ou imagem. Conforme o uso, toda estimativa confirmada alimenta
+                um banco de dados SQLite que é consultado antes de qualquer nova estimativa. O sistema fica
+                progressivamente mais barato e determinístico conforme o catálogo cresce, sem depender do
+                LLM para itens já conhecidos.
+              </p>
+              <!-- RASCUNHO MEU — reescreva com suas palavras antes de publicar -->
+              <p class="porque">
+                <strong>Por quê:</strong> alucinação numérica é inaceitável quando o número vira custo de
+                frete. Tirando o estado do modelo e colocando no banco, o erro para de ser invisível.
+              </p>
+              <ul class="tec">
+                <li>Python</li>
+                <li>SQLite</li>
+                <li>Claude Code</li>
+                <li>Gemini API</li>
+              </ul>
+            </div>
+          </details>
+        </article>
+
+        <article class="projeto" id="projeto-denaro">
+          <details>
+            <summary><h4>denaro <code class="cmd">projects/denaro</code></h4></summary>
+            <div class="corpo">
+              <p class="problema"><strong>Problema:</strong> [PREENCHER]</p>
+              <p class="solucao"><strong>Solução:</strong> [PREENCHER]</p>
+              <p class="porque"><strong>Por quê:</strong> [PREENCHER]</p>
+              <ul class="tec">
+                <li>Node.js</li>
+                <li>FastAPI</li>
+                <li>Google Sheets</li>
+              </ul>
+            </div>
+          </details>
+        </article>
+
+        <article class="projeto" id="projeto-khalkaria-rpg">
+          <details>
+            <summary><h4>khalkaria-rpg <code class="cmd">projects/khalkaria-rpg</code></h4></summary>
+            <div class="corpo">
+              <p class="problema"><strong>Problema:</strong> [PREENCHER]</p>
+              <p class="solucao"><strong>Solução:</strong> [PREENCHER]</p>
+              <p class="porque"><strong>Por quê:</strong> [PREENCHER]</p>
+              <ul class="tec"><li>[PREENCHER]</li></ul>
+            </div>
+          </details>
+        </article>
+
+      </div>
+    </details>
+
+    <details class="bloco" id="stack" open>
+      <summary><h3>Competências <code class="cmd">skills</code></h3></summary>
+      <div class="corpo">
+        <ul class="arvore">
+          <li>Linguagens
+            <ul>
+              <li>Python <span class="usado-em">cubagem-stone, [PREENCHER]</span></li>
+              <li>JavaScript <span class="usado-em">denaro, [PREENCHER]</span></li>
+              <li>C# <span class="usado-em">[PREENCHER]</span></li>
+            </ul>
+          </li>
+          <li>Dados e persistência
+            <ul>
+              <li>SQLite <span class="usado-em">cubagem-stone</span></li>
+              <li>[PREENCHER] <span class="usado-em">[PREENCHER]</span></li>
+            </ul>
+          </li>
+          <li>IA aplicada
+            <ul>
+              <li>Agentes LLM / tool use <span class="usado-em">cubagem-stone</span></li>
+              <li>[PREENCHER] <span class="usado-em">[PREENCHER]</span></li>
+            </ul>
+          </li>
+          <li>Modelagem e design de sistemas
+            <ul>
+              <li>[PREENCHER] <span class="usado-em">khalkaria-rpg, [PREENCHER]</span></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="bloco" id="idiomas" open>
+      <summary><h3>Idiomas <code class="cmd">language</code></h3></summary>
+      <div class="corpo">
+        <ul class="arvore">
+          <li>Português <span class="periodo">Nativo</span></li>
+          <li>Inglês <span class="periodo">Fluente</span></li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="bloco" id="contato" open>
+      <summary><h3>Contato <code class="cmd">contact</code></h3></summary>
+      <div class="corpo">
+        <ul class="arvore">
+          <li><a href="mailto:vitralzin@gmail.com">vitralzin@gmail.com</a></li>
+          <li><a href="https://github.com/vitralxx" rel="me noopener" target="_blank">github.com/vitralxx</a></li>
+          <li><a href="https://www.linkedin.com/in/pedro-vitral-b04a8b3b6/" rel="me noopener" target="_blank">linkedin.com/in/pedro-vitral</a></li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="bloco" id="ajuda" open>
+      <summary><h3>Comandos <code class="cmd">help</code></h3></summary>
+      <div class="corpo">
+        <ul class="arvore">
+          <li><code class="cmd">whoami</code> — perfil</li>
+          <li><code class="cmd">edu</code> — formação</li>
+          <li><code class="cmd">projects</code> — lista os projetos</li>
+          <li><code class="cmd">projects/&lt;nome&gt;</code> — abre um projeto em detalhe</li>
+          <li><code class="cmd">skills</code> — competências</li>
+          <li><code class="cmd">language</code> — idiomas</li>
+          <li><code class="cmd">contact</code> — e-mail e links</li>
+          <li><code class="cmd">clear</code> — limpa a tela</li>
+        </ul>
+      </div>
+    </details>
+
+  </div><!-- /#fonte -->
+
+</main>
+
+<footer class="rodape">
+  <p>Escrito à mão em HTML, CSS e JavaScript.</p>
+</footer>
+
+<!-- defer: espera o HTML existir antes de rodar, sem bloquear a renderização -->
+<script src="ui.js" defer></script>
+<script src="terminal.js" defer></script>
+</body>
+</html>
