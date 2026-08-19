@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+_preview_temp.html
+
+# Os PNG originais dos screenshots. O site serve só os .webp (800 KB contra
+# 7,1 MB), e o Git guarda para sempre tudo que entra: se estes subirem agora,
+# tirar depois exige reescrever o histórico. Ficam no seu disco, fora do repo.
+# Para versioná-los mesmo assim, apague as duas linhas abaixo.
+imgs/*.png

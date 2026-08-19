@@ -51,9 +51,9 @@ PROJETOS_PDF = ["cubagem-stone", "agenda-viert"]
 
 # Ordem dos projetos por alvo. Ausente = a ordem de PROJETOS_PDF.
 ORDEM_ALVO = {
-    "ml":       ["cubagem-stone", "agenda-viert", "denaro", "khalkaria-rpg"],
-    "dev":      ["denaro", "agenda-viert", "cubagem-stone", "khalkaria-rpg"],
-    "pesquisa": ["cubagem-stone", "khalkaria-rpg", "agenda-viert", "denaro"],
+    "ml":       ["cubagem-stone", "agenda-viert", "denaro-bot", "khalkaria-rpg"],
+    "dev":      ["denaro-bot", "agenda-viert", "cubagem-stone", "khalkaria-rpg"],
+    "pesquisa": ["cubagem-stone", "khalkaria-rpg", "agenda-viert", "denaro-bot"],
 }
 
 # Proporção das duas colunas principais e a calha entre elas.

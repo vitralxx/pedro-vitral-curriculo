@@ -60,7 +60,7 @@
   /* ======================================================================
      1. DICIONÁRIO DE COMANDOS
      ====================================================================== */
-  const PROJETOS = ['agenda-viert', 'cubagem-stone', 'denaro', 'khalkaria-rpg'];
+  const PROJETOS = ['agenda-viert', 'cubagem-stone', 'denaro-bot', 'khalkaria-rpg'];
 
   const COMANDOS = {
     whoami:   { seletor: '#perfil'   },
@@ -182,7 +182,15 @@
      devagar (menos de 1 caractere por frame) — que é o que faz o cabeçalho
      levar 4 segundos em vez de piscar.
      ====================================================================== */
-  let pararAtual = null;
+  /* Um CONJUNTO, não uma referência só. Se duas animações rodarem ao mesmo
+     tempo, guardar apenas a última deixa a primeira órfã: o texto dela fica
+     pela metade para sempre, porque ninguém mais consegue chamar o completar
+     dela. Com o conjunto, completarTudo() alcança todas. */
+  const emCurso = new Set();
+
+  function completarTudo() {
+    [...emCurso].forEach(fn => fn());
+  }
 
   function digitar(raiz, aoTerminar, frames) {
     const it = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT);
@@ -205,7 +213,7 @@
       vivo = false;
       for (; i < nos.length; i++) nos[i].no.nodeValue = nos[i].texto;
       raiz.classList.remove('digitando');
-      if (pararAtual === completar) pararAtual = null;
+      emCurso.delete(completar);
       anuncio.textContent = raiz.textContent.replace(/\s+/g, ' ').trim();
       seguir(raiz);
       if (aoTerminar) aoTerminar();
@@ -234,7 +242,7 @@
       requestAnimationFrame(passo);
     }
 
-    pararAtual = completar;
+    emCurso.add(completar);
     requestAnimationFrame(passo);
   }
 
@@ -289,7 +297,7 @@
   function executar(bruto) {
     const cmd = bruto.trim();
     if (!cmd) return;
-    if (pararAtual) pararAtual();          // completa o que estiver saindo
+    completarTudo();                       // completa tudo que estiver saindo
     ecoar(cmd);
 
     const def = resolver(cmd);
@@ -580,7 +588,7 @@
     gravarPref('textanim', textAnim ? '1' : '0');
     // Desligar completa na hora o que estiver saindo, mas NÃO para o auto-play:
     // os dois eixos são independentes.
-    if (!textAnim && pararAtual) pararAtual();
+    if (!textAnim) completarTudo();
   });
 
   // O cabeçalho é animação de texto, não auto-play: sai mesmo com auto-type

@@ -149,7 +149,7 @@ body::before {                       /* scanlines */
   content: "";
   position: fixed;
   inset: 0;
-  z-index: 9998;
+  z-index: 9990;
   pointer-events: none;
   background: repeating-linear-gradient(
     to bottom,
@@ -163,7 +163,7 @@ body::after {                        /* vinheta + moldura */
   content: "";
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 9991;
   pointer-events: none;
   background: radial-gradient(ellipse at center, transparent 52%, var(--vinheta) 100%);
   box-shadow: inset 0 0 8vmin 2vmin rgba(0, 0, 0, .7);
@@ -200,13 +200,13 @@ body::after {                        /* vinheta + moldura */
    -------------------------------------------------------------------------- */
 .arvore ul { padding-left: 1.5ch; }
 
-.arvore :is(li, .projeto) {
+.arvore :is(li, .projeto):not(.tec li) {
   position: relative;
   padding-left: 3.5ch;
   margin-block: var(--e1);
 }
 
-.arvore :is(li, .projeto)::before {          /* galho */
+.arvore :is(li, .projeto):not(.tec li)::before {          /* galho */
   content: "├──" / "";
   position: absolute;
   left: 0;
@@ -214,9 +214,9 @@ body::after {                        /* vinheta + moldura */
   color: var(--verde-baixo);
   white-space: pre;
 }
-.arvore :is(li, .projeto):last-child::before { content: "└──" / ""; }
+.arvore :is(li, .projeto):not(.tec li):last-child::before { content: "└──" / ""; }
 
-.arvore :is(li, .projeto):not(:last-child)::after {   /* tronco */
+.arvore :is(li, .projeto):not(.tec li):not(:last-child)::after {   /* tronco */
   content: "";
   position: absolute;
   left: .5ch;                     /* centro do glifo ├, em monoespaçada */
@@ -329,6 +329,7 @@ strong { color: var(--verde-alto); font-weight: 700; }
 }
 
 /* Tecnologias: linha de tags, não lista. Anula as guias de árvore herdadas. */
+.arvore ul.tec,
 .tec {
   display: flex;
   flex-wrap: wrap;
@@ -349,6 +350,206 @@ strong { color: var(--verde-alto); font-weight: 700; }
 }
 .tec li::before,
 .tec li::after { content: none; border: 0; }
+
+/* Linha que não pode quebrar (o fluxo de trabalho com LLM). white-space:nowrap
+   sozinho estouraria a coluna no celular e faria a PÁGINA rolar de lado, que é
+   pior. Com overflow-x próprio, quem rola é só esta linha. */
+.fluxo {
+  display: block;
+  white-space: nowrap;
+  overflow-x: auto;
+  margin-block: var(--e2);
+  padding-bottom: var(--e1);
+}
+
+/* --------------------------------------------------------------------------
+   8b. IMAGENS E GALERIA
+   Nada de width="750" no HTML: atributo de apresentação não é responsivo e
+   estoura a coluna no celular. A largura vem daqui, e max-width:100% garante
+   que a imagem nunca fique maior que o espaço disponível.
+   -------------------------------------------------------------------------- */
+.subtitulo {
+  color: var(--verde-baixo);
+  font-size: .9em;
+  margin-bottom: var(--e3);
+}
+
+.rotulo { margin-bottom: var(--e2); }
+
+.rotulo-grupo {
+  color: var(--verde-baixo);
+  font-size: .85em;
+  font-weight: 400;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: var(--e2);
+}
+.corpo + .corpo { padding-top: var(--e4); }
+
+/* A galeria fica no fluxo normal, SEM z-index próprio. A versão anterior
+   subia para 9995 para escapar das scanlines, e com isso passava por cima do
+   console (50) e da barra de botões (100), invadindo a tela ao rolar.
+   Escolher outro número seria remendo: quem precisa da imagem limpa é o modo
+   tela cheia, que abre acima de tudo. A miniatura pertence à tela CRT. */
+.galeria {
+  position: relative;
+  margin-block: var(--e3) var(--e4);
+}
+
+.galeria-quadro {
+  position: relative;            /* âncora dos botões nos cantos */
+  border: 1px solid var(--verde-baixo);
+  background: #000;
+  padding: 3px;
+  /* SEM line-height: 0 aqui. Quando a imagem não carrega, o navegador
+     desenha o texto alt no lugar dela — e com entrelinha zero esse texto
+     colapsa em cima de si mesmo e some atrás da borda. O espaço fantasma
+     que o line-height:0 resolvia já não existe: a img é display:block. */
+  line-height: 1.4;
+}
+
+.galeria-quadro img {
+  display: block;
+  cursor: zoom-in;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  /* Compensa a escurecida da vinheta sem lavar a imagem */
+  filter: brightness(1.06) contrast(1.03);
+}
+
+/* Sem JavaScript as imagens empilham, que é um fallback honesto.
+   Com JavaScript, só a ativa aparece e os controles passam a existir. */
+html.js .galeria-quadro img:not(.ativa) { display: none; }
+html:not(.js) :is(.galeria-btn, .galeria-contador) { display: none; }
+
+/* Botões sobre a própria imagem, nas bordas laterais. Fundo quase opaco
+   porque screenshot claro por baixo apagaria o contorno verde. */
+.galeria-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  border: 1px solid var(--verde-baixo);
+  background: rgba(5, 11, 7, .85);
+  color: var(--verde-medio);
+  padding: var(--e1) .6ch;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: color .12s, border-color .12s, box-shadow .12s;
+}
+.galeria-ant  { left: var(--e2);  }
+.galeria-prox { right: var(--e2); }
+
+.galeria-btn:hover, .galeria-btn:focus-visible {
+  color: var(--verde-alto);
+  border-color: var(--verde-alto);
+  box-shadow: var(--glow-forte);
+  background: var(--fundo);
+}
+
+.galeria-contador {
+  display: block;
+  text-align: center;
+  margin-top: var(--e2);
+  font-size: .85em;
+  color: var(--verde-baixo);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A galeria NÃO é escondida durante a digitação, de propósito. Esconder
+   dependeria de completar() rodar para revelar de novo, e as imagens são a
+   prova de que os projetos existem: pendurá-las num callback de animação
+   troca um ganho pequeno de leitura por um risco grande de nunca aparecerem. */
+
+/* No Modo Moderno não há camada de tela para compensar. */
+html[data-modo="moderno"] .galeria-quadro img { filter: none; }
+html[data-modo="moderno"] .galeria-quadro { background: #fff; }
+
+/* --------------------------------------------------------------------------
+   8c. VISOR EM TELA CHEIA
+   A miniatura pertence à tela CRT e leva scanline junto. O visor não: ele
+   abre acima de tudo (inclusive das camadas de tela, §4) porque aqui o
+   objetivo é ler o screenshot, não decorar.
+   -------------------------------------------------------------------------- */
+.visor {
+  position: fixed;
+  inset: 0;
+  z-index: 10010;                /* acima das scanlines (9990) e do .pular (10000) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--e5) var(--e4);
+  background: rgba(0, 0, 0, .94);
+}
+/* display:flex venceria o atributo hidden, que só define display:none via UA */
+.visor[hidden] { display: none; }
+
+.visor-palco {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--e3);
+  margin: 0;
+  max-width: 100%;
+}
+
+.visor-palco img {
+  display: block;
+  max-width: min(1600px, 94vw);
+  max-height: 78vh;
+  width: auto;
+  height: auto;
+  border: 1px solid var(--verde-baixo);
+  background: #000;
+}
+
+.visor-legenda {
+  color: var(--verde-baixo);
+  font-size: .85em;
+  text-align: center;
+  max-width: 80ch;
+  line-height: 1.5;
+}
+
+.visor-contador {
+  color: var(--verde-medio);
+  font-size: .85em;
+  font-variant-numeric: tabular-nums;
+}
+
+.visor-btn {
+  position: absolute;
+  border: 1px solid var(--verde-baixo);
+  background: rgba(5, 11, 7, .9);
+  color: var(--verde-medio);
+  padding: var(--e2) 1ch;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: color .12s, border-color .12s, box-shadow .12s;
+}
+.visor-btn:hover, .visor-btn:focus-visible {
+  color: var(--verde-alto);
+  border-color: var(--verde-alto);
+  box-shadow: var(--glow-forte);
+}
+
+.visor-ant    { left: var(--e3);  top: 50%; transform: translateY(-50%); }
+.visor-prox   { right: var(--e3); top: 50%; transform: translateY(-50%); }
+.visor-fechar { top: var(--e3);   right: var(--e3); }
+
+/* Trava a rolagem do fundo enquanto o visor está aberto: rolar a página por
+   trás de um modal desorienta e faz perder o lugar da leitura. */
+html.visor-aberto, html.visor-aberto body { overflow: hidden; }
+
+@media (max-width: 600px) {
+  .visor { padding: var(--e4) var(--e2); }
+  .visor-palco img { max-height: 66vh; }
+  .visor-ant  { left: var(--e1);  }
+  .visor-prox { right: var(--e1); }
+}
+
+@media print { .visor { display: none !important; } }
 
 /* --------------------------------------------------------------------------
    9. TERMINAL — prompt, ghost text, sugestões
@@ -706,7 +907,8 @@ html[data-modo="moderno"] h3 { letter-spacing: .04em; }
   .cmd, .periodo, .usado-em { color: #444; }
 
   /* Some tudo que só existe na tela */
-  .chrome, .pular, #chips, #terminal-form, #sugestoes, .rodape { display: none !important; }
+  .chrome, .pular, #chips, #terminal-form, #sugestoes, .rodape,
+  .galeria { display: none !important; }
 
   summary::before { content: "" / ""; }
   summary { border-bottom: 1px solid #000 !important; }
