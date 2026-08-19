@@ -57,6 +57,10 @@
     <!-- Grudado no rodapé da janela: o recrutador tem que VER o comando sendo
          escrito, senão nunca entende que digitar libera conteúdo. -->
     <div class="console">
+    <!-- Aparece quando o auto-type emite conteúdo enquanto o usuário está
+         lendo mais acima. Arrastar a tela de quem está lendo é irritante;
+         avisar e deixar ele decidir, não. -->
+    <button type="button" id="novidade" class="novidade" hidden>▼ conteúdo novo</button>
     <form id="terminal-form" hidden>
       <div class="linha-topo">
         <p class="convite">Este currículo responde a comandos. Experimente:</p>
@@ -649,7 +653,7 @@
 </main>
 
 <footer class="rodape">
-  <p>Escrito à mão em HTML, CSS e JavaScript.</p>
+  <p>Escrito em HTML, CSS e JavaScript.</p>
 </footer>
 
 <!-- defer: espera o HTML existir antes de rodar, sem bloquear a renderização -->

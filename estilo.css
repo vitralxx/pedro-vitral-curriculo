@@ -711,9 +711,37 @@ html.js #fonte { display: none; }
 
 .erro { color: var(--verde-alto); }
 
-/* Durante a digitação, tags e dicas de comando ficam escondidas: senão as
-   caixas vazias aparecem todas de uma vez antes do texto chegar nelas. */
-.digitando :is(.tec, .cmd) { visibility: hidden; }
+/* Elemento que a digitação ainda não alcançou. O motor põe e tira esta classe
+   conforme imprime, e é ela que faz guia de árvore, marcador [+]/[-], linha
+   divisória e dica de comando entrarem junto com a linha a que pertencem, em
+   vez de aparecerem todos de uma vez no começo.
+
+   display:none e não visibility:hidden porque o conteúdo precisa CRESCER
+   conforme sai; com visibility o bloco já ocuparia a altura final e a rolagem
+   que acompanha perderia o sentido.
+
+   !important porque a classe cruza elementos com display próprio (flex, block,
+   inline-flex) e aqui vale mais ser à prova de bala do que puro: é uma classe
+   transitória, posta e removida pelo JS dentro da mesma animação. */
+.nao-revelado { display: none !important; }
+
+/* Aviso de conteúdo novo, ancorado logo acima do console. */
+.novidade {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, -135%);
+  z-index: 2;
+  border: 1px solid var(--verde-alto);
+  background: var(--fundo);
+  color: var(--verde-alto);
+  padding: var(--e1) var(--e3);
+  font-size: .85em;
+  cursor: pointer;
+  box-shadow: var(--glow-forte);
+}
+.novidade[hidden] { display: none; }
+.novidade:hover, .novidade:focus-visible { background: var(--verde-baixo); color: var(--fundo); }
 
 /* --------------------------------------------------------------------------
    10. CHIPS

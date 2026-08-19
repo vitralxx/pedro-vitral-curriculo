@@ -25,6 +25,8 @@
   const consoleEl = document.querySelector('.console');
   const cabecalho = document.querySelector('.topo');
   const convite   = form.querySelector('.convite');
+  const novidade  = document.getElementById('novidade');
+  const chromeEl  = document.querySelector('.chrome');
 
   const chkAuto   = document.getElementById('auto-type');
   const chkAnim   = document.getElementById('text-animation');
@@ -122,7 +124,7 @@
   // Voltou ao rodapé por conta própria: retoma o acompanhamento.
   addEventListener('scroll', () => {
     const fundo = document.documentElement.scrollHeight - innerHeight;
-    if (fundo - scrollY < 120) seguindo = true;
+    if (fundo - scrollY < 120) { seguindo = true; esconderNovidade(); }
   }, { passive: true });
 
   function seguir(el) {
@@ -132,6 +134,22 @@
     const excesso = base - teto + 24;
     if (excesso > 2) scrollBy(0, excesso);
   }
+
+  /* Aviso de conteúdo novo. Só o auto-play usa isto: arrastar a tela de quem
+     está lendo, sem ele ter pedido, é irritante. Comando digitado pelo
+     usuário é outro caso — ele quer ver o resultado, então desce sempre. */
+  function avisarNovidade() {
+    if (novidade) novidade.hidden = false;
+  }
+  function esconderNovidade() {
+    if (novidade) novidade.hidden = true;
+  }
+  function descerAoFim() {
+    seguindo = true;
+    esconderNovidade();
+    scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+  }
+  if (novidade) novidade.addEventListener('click', descerAoFim);
 
   /* ======================================================================
      3. SOM — sintetizado na Web Audio, zero arquivo baixado.
@@ -192,26 +210,66 @@
     [...emCurso].forEach(fn => fn());
   }
 
-  function digitar(raiz, aoTerminar, frames) {
-    const it = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT);
-    const nos = [];
+  /* preparar() e animar() são separados de propósito.
+
+     A abertura anima três regiões em sequência (moldura, console, cabeçalho).
+     Se cada uma só fosse esvaziada quando chegasse a sua vez, as outras duas
+     ficariam visíveis e completas por segundos antes de apagar e redigitar,
+     que é pior do que não animar. Esvaziar as três no mesmo instante do
+     carregamento resolve: ninguém vê o conteúdo antes da hora. */
+  function preparar(raiz) {
+    /* Percorre ELEMENTOS e TEXTO na ordem do documento.
+
+       Só encher nós de texto não bastava: guia de árvore, marcador [+]/[-] e
+       linha divisória são pseudo-elemento e borda do CSS, não texto. Eles
+       apareciam todos de uma vez enquanto as letras ainda saíam. Aqui cada
+       elemento guarda quantos nós de texto vieram antes dele e fica escondido
+       até a digitação chegar nele, e aí entra inteiro, com decoração e tudo,
+       que é como um terminal de verdade imprime: linha a linha. */
+    const it = document.createTreeWalker(
+      raiz, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
+
+    const nos = [];      // { no, texto } de cada nó de texto
+    const marcos = [];   // [elemento, índice do texto que o libera]
     let n;
+
     while ((n = it.nextNode())) {
-      if (!n.nodeValue.trim()) continue;      // espaços entre tags: preserva
-      nos.push({ no: n, texto: n.nodeValue });
-      n.nodeValue = '';
+      if (n.nodeType === Node.ELEMENT_NODE) {
+        marcos.push([n, nos.length]);
+      } else if (n.nodeValue.trim()) {
+        nos.push({ no: n, texto: n.nodeValue });
+        n.nodeValue = '';
+      }
     }
 
     const total = nos.reduce((s, x) => s + x.texto.length, 0);
+    if (textAnim && total) {
+      marcos.forEach(([el]) => el.classList.add('nao-revelado'));
+    }
+    return { raiz, nos, marcos, total };
+  }
+
+  function animar(estado, aoTerminar, frames) {
+    const { raiz, nos, marcos, total } = estado;
     const porFrame = total / (frames || 90);   // 90 frames ≈ 1,5s
-    let i = 0, pos = 0, acumulado = 0, vivo = true;
+    let i = 0, pos = 0, acumulado = 0, ponteiro = 0, vivo = true;
 
     raiz.classList.add('digitando');
+
+    function revelarAte(indice) {
+      while (ponteiro < marcos.length && marcos[ponteiro][1] <= indice) {
+        marcos[ponteiro][0].classList.remove('nao-revelado');
+        ponteiro++;
+      }
+    }
 
     function completar() {
       if (!vivo) return;
       vivo = false;
       for (; i < nos.length; i++) nos[i].no.nodeValue = nos[i].texto;
+      for (; ponteiro < marcos.length; ponteiro++) {
+        marcos[ponteiro][0].classList.remove('nao-revelado');
+      }
       raiz.classList.remove('digitando');
       emCurso.delete(completar);
       anuncio.textContent = raiz.textContent.replace(/\s+/g, ' ').trim();
@@ -220,6 +278,8 @@
     }
 
     if (!textAnim || total === 0) { completar(); return; }
+
+    revelarAte(0);
 
     function passo() {
       if (!vivo) return;
@@ -236,6 +296,7 @@
         if (pos >= atual.texto.length) { i++; pos = 0; }
       }
 
+      revelarAte(i);
       estalo();
       seguir(raiz);
       if (i >= nos.length) { completar(); return; }
@@ -244,6 +305,11 @@
 
     emCurso.add(completar);
     requestAnimationFrame(passo);
+  }
+
+  // Atalho para quem esvazia e anima no mesmo instante (todo comando emitido).
+  function digitar(raiz, aoTerminar, frames) {
+    animar(preparar(raiz), aoTerminar, frames);
   }
 
   /* ======================================================================
@@ -298,6 +364,9 @@
     const cmd = bruto.trim();
     if (!cmd) return;
     completarTudo();                       // completa tudo que estiver saindo
+    // Comando digitado é pedido explícito de ver o resultado: desce sempre.
+    seguindo = true;
+    esconderNovidade();
     ecoar(cmd);
 
     const def = resolver(cmd);
@@ -314,21 +383,79 @@
      ====================================================================== */
   const SEQUENCIA = ['whoami', 'edu', 'projects', 'skills', 'language', 'contact'];
 
-  const ABERTURA_FRAMES = 240;   // ~4s de digitação do cabeçalho
-  const ESPERA_CONVITE  = 2500;  // pausa antes de começar a se tocar sozinho
-  const ESPERA_ENTRE    = 5000;  // entre um comando e o próximo
+  const ABERTURA_FRAMES  = 240;   // ~4s de digitação do cabeçalho
+  const CONSOLE_FRAMES   = 70;    // ~1,2s montando o console
+  const CHROME_FRAMES    = 45;    // ~0,8s montando os botões F1/F2/F3
+  const ESPERA_CONVITE   = 2500;  // pausa antes de começar a se tocar sozinho
+  const ESPERA_ENTRE     = 5000;  // entre um comando e o próximo
+  const ESPERA_RETOMADA  = 12000; // silêncio do usuário antes de retomar sozinho
 
-  let autoVivo = true;
+  /* Duas variáveis, e a distinção importa:
+       autoType — a caixa marcada. É a vontade declarada do usuário.
+       pausado  — o usuário mexeu agora e a máquina cedeu a vez.
+
+     Antes existia só um "autoVivo", que qualquer interação matava para sempre.
+     Cedeu a vez uma vez, acabou. Agora só desmarcar a caixa encerra: qualquer
+     outra interrupção é temporária, e depois de ESPERA_RETOMADA em silêncio a
+     sequência volta de onde parou. */
+  let pausado = false;
   let timer = null;
-  const jaEmitidos = new Set();   // o que a sequência já cuspiu
+
+  /* Um comando por vez, e um timer por vez.
+
+     A duplicação vinha daqui: `timer` servia a três propósitos (tecla do
+     comando, próximo comando, retomada) e várias atribuições trocavam o handle
+     sem cancelar o anterior. O timeout esquecido continuava vivo e disparava
+     tocar() uma segunda vez ENQUANTO o comando ainda estava sendo digitado.
+     Como ecoar() só acontece no fim da digitação, proximoPendente() ainda não
+     via aquele comando no console e devolvia o mesmo de novo.
+
+     agendar() cancela sempre. `emitindo` é o cinto de segurança: mesmo que
+     escape algum timer, tocar() não começa um comando com outro em curso. */
+  let emitindo = false;
+
+  function agendar(fn, ms) {
+    clearTimeout(timer);
+    timer = setTimeout(fn, ms);
+  }
+
+  /* De onde retomar: lê o que JÁ ESTÁ no console em vez de confiar num
+     contador interno. Assim funciona igual se o usuário digitou o comando
+     na mão, se clicou no chip, ou se rodou "clear" e zerou tudo. */
+  function jaNoConsole() {
+    return new Set([...saida.querySelectorAll('.entrada .eco')]
+      .map(e => e.textContent.trim().toLowerCase()));
+  }
+
+  function proximoPendente() {
+    const feitos = jaNoConsole();
+    return SEQUENCIA.find(c => !feitos.has(c)) || null;
+  }
+
+  function agendarRetomada() {
+    clearTimeout(timer);
+    if (!autoType) return;
+    agendar(() => {
+      if (!autoType) return;
+      // Ainda tem texto no campo: a pessoa está no meio de um comando.
+      if (input.value.trim()) { agendarRetomada(); return; }
+      pausado = false;
+      form.classList.add('aguardando');
+      tocar();
+    }, ESPERA_RETOMADA);
+  }
 
   function interromper() {
-    if (!autoVivo) return;
-    autoVivo = false;
     clearTimeout(timer);
-    input.value = '';                       // limpa o comando que a máquina digitava
-    ghost.replaceChildren();                // e o cursor postiço: agora vale o nativo
-    form.classList.remove('aguardando');
+    emitindo = false;          // a máquina cedeu a vez no meio do comando
+    if (!pausado) {
+      pausado = true;
+      input.value = '';          // apaga o comando que a máquina estava digitando
+      ghost.replaceChildren();   // e o cursor postiço: agora vale o nativo
+      form.classList.remove('aguardando');
+    }
+    // Cada nova interação empurra a retomada para frente.
+    agendarRetomada();
   }
 
   /* Cursor de bloco na camada ghost, logo após o texto já digitado. */
@@ -356,40 +483,46 @@
     if (!textAnim) {
       input.value = cmd;
       mostrarCursor(cmd);
-      timer = setTimeout(() => { input.value = ''; mostrarCursor(''); aoTerminar(); }, 500);
+      agendar(() => { input.value = ''; mostrarCursor(''); aoTerminar(); }, 500);
       return;
     }
 
     let i = 0;
     (function tecla() {
-      if (!autoVivo) { input.value = ''; ghost.replaceChildren(); return; }
+      if (!autoType || pausado) { input.value = ''; ghost.replaceChildren(); return; }
       input.value = cmd.slice(0, ++i);
       mostrarCursor(input.value);
       estalo();
       if (i < cmd.length) {
-        timer = setTimeout(tecla, 60 + Math.random() * 55);   // ritmo irregular = humano
+        agendar(tecla, 60 + Math.random() * 55);   // ritmo irregular = humano
       } else {
-        timer = setTimeout(() => { input.value = ''; mostrarCursor(''); aoTerminar(); }, 450);
+        agendar(() => { input.value = ''; mostrarCursor(''); aoTerminar(); }, 450);
       }
     })();
   }
 
-  function tocar(fila) {
-    let k = 0;
-    (function proximo() {
-      if (!autoVivo || k >= fila.length) return;
-      const cmd = fila[k++];
-      digitarComando(cmd, () => {
-        if (!autoVivo) return;
-        ecoar(cmd);
-        jaEmitidos.add(cmd);
-        // Encadeia na CONCLUSÃO da digitação, não no relógio: com pausa fixa
-        // um bloco longo começaria antes de o anterior terminar de sair.
-        imprimir(resolver(cmd), () => {
-          timer = setTimeout(proximo, ESPERA_ENTRE);
-        });
+  function tocar() {
+    if (!autoType || pausado || emitindo) return;
+
+    const cmd = proximoPendente();
+    if (!cmd) return;                       // sequência completa, nada a fazer
+
+    emitindo = true;
+    digitarComando(cmd, () => {
+      if (!autoType || pausado) { emitindo = false; return; }
+      ecoar(cmd);
+      // Não arrasta a tela de quem está lendo mais acima: avisa e espera.
+      if (!seguindo) avisarNovidade();
+      // Encadeia na CONCLUSÃO da digitação, não no relógio: com pausa fixa
+      // um bloco longo começaria antes de o anterior terminar de sair.
+      imprimir(resolver(cmd), () => {
+        emitindo = false;
+        // Se o usuário assumiu enquanto isto saía, quem manda é a retomada
+        // que interromper() já agendou. Agendar aqui a apagaria.
+        if (!autoType || pausado) return;
+        agendar(tocar, ESPERA_ENTRE);
       });
-    })();
+    });
   }
 
   /* ======================================================================
@@ -479,7 +612,6 @@
      ====================================================================== */
   form.hidden = false;
   form.classList.add('aguardando');
-  mostrarCursor('');
 
   function enviar() {
     const cmd = input.value;
@@ -557,30 +689,33 @@
   /* ======================================================================
      9. ABERTURA
      ====================================================================== */
-  /* Sem auto-type, o cabeçalho já está renderizado pelo HTML e não há nada a
-     animar. Mas página vazia é pior do que animação indesejada: quem desligou
-     ainda precisa de um ponto de partida. "help" dá isso sem despejar o
-     currículo inteiro por cima de quem justamente quer explorar sozinho. */
   /* Tela em branco é pior do que animação indesejada: quem desligou o auto-type
      ainda precisa de um ponto de partida. "help" dá isso sem despejar o
      currículo inteiro por cima de quem justamente quer explorar sozinho. */
   function garantirPontoDePartida() {
     if (saida.children.length) return;
     ecoar('help');
-    jaEmitidos.add('help');
     imprimir(resolver('help'));
-  }
-
-  function pararAutoPlay() {
-    interromper();
-    garantirPontoDePartida();
   }
 
   chkAuto.addEventListener('change', () => {
     autoType = chkAuto.checked;
     gravarPref('autotype', autoType ? '1' : '0');
-    if (!autoType) pararAutoPlay();
-    // Religar não reinicia a sequência — retomar do nada seria assustador.
+    if (autoType) {
+      // Religar retoma de onde parou: proximoPendente() lê o console e pula
+      // o que já saiu, inclusive o que o próprio usuário digitou.
+      pausado = false;
+      emitindo = false;
+      form.classList.add('aguardando');
+      agendar(tocar, 600);
+    } else {
+      clearTimeout(timer);
+      pausado = true;
+      input.value = '';
+      ghost.replaceChildren();
+      form.classList.remove('aguardando');
+      garantirPontoDePartida();
+    }
   });
 
   chkAnim.addEventListener('change', () => {
@@ -591,10 +726,34 @@
     if (!textAnim) completarTudo();
   });
 
-  // O cabeçalho é animação de texto, não auto-play: sai mesmo com auto-type
-  // desligado (e instantâneo se text-animation estiver desligado).
-  digitar(cabecalho, () => {
-    if (autoType) timer = setTimeout(() => tocar(SEQUENCIA), ESPERA_CONVITE);
-    else          pararAutoPlay();
-  }, ABERTURA_FRAMES);
+  /* A abertura constrói a tela inteira com o mesmo motor, nesta ordem:
+     moldura, console, cabeçalho. É a ordem de um terminal ligando, a interface
+     sobe primeiro e o conteúdo imprime depois.
+
+     As três são esvaziadas AGORA, juntas, e só então animadas em sequência.
+     Preparar cada uma na sua vez deixaria as outras visíveis e completas por
+     segundos antes de apagar para redigitar. */
+  const abertura = [
+    [preparar(chromeEl),  CHROME_FRAMES],
+    [preparar(consoleEl), CONSOLE_FRAMES],
+    [preparar(cabecalho), ABERTURA_FRAMES],
+  ];
+
+  (function proximaCena(k) {
+    if (k >= abertura.length) {
+      mostrarCursor('');
+      if (autoType && !pausado) {
+        // !pausado: se alguém já mexeu durante a abertura, quem manda é a
+        // retomada que interromper() agendou.
+        agendar(tocar, ESPERA_CONVITE);
+      } else if (!autoType) {
+        pausado = true;
+        form.classList.remove('aguardando');
+        garantirPontoDePartida();
+      }
+      return;
+    }
+    const [estado, frames] = abertura[k];
+    animar(estado, () => proximaCena(k + 1), frames);
+  })(0);
 })();

@@ -1,0 +1,14 @@
+# O Git, no Windows, converte LF em CRLF no que ele acha que é texto. Um PDF
+# tem bytes suficientes parecidos com texto para enganar a heurística, e a
+# conversão corrompe o arquivo para quem clonar. Marcar como binário resolve.
+*.pdf   binary
+*.webp  binary
+*.png   binary
+*.jpg   binary
+
+# Código com fim de linha estável no repositório, independente do sistema.
+*.html  text eol=lf
+*.css   text eol=lf
+*.js    text eol=lf
+*.py    text eol=lf
+*.md    text eol=lf

@@ -45,9 +45,12 @@ SUAVE  = HexColor("#5A646A")   # metadados, datas, tecnologias
 ACENTO = HexColor("#0D6B45")   # títulos de seção e links
 
 # Quais projetos entram no PDF, nesta ordem. O site mostra todos; o papel é
-# caro e currículo de estágio cabe em uma página. Projeto sem conteúdo escrito
-# é ignorado, então dá para listar aqui antes de terminar de preencher.
-PROJETOS_PDF = ["cubagem-stone", "agenda-viert"]
+# caro e currículo de estágio cabe em uma ou duas páginas. Projeto sem conteúdo
+# escrito é ignorado, então dá para listar aqui antes de terminar de preencher.
+#
+# As competências acompanham esta lista: um "usado em" que apontasse para um
+# projeto ausente deixaria o leitor com um nome sem lugar nenhum no documento.
+PROJETOS_PDF = ["agenda-viert"]
 
 # Ordem dos projetos por alvo. Ausente = a ordem de PROJETOS_PDF.
 ORDEM_ALVO = {
@@ -168,7 +171,7 @@ def inline(no):
             saida.append(f"<i>{inline(f)}</i>")
         elif f.tag == "a":
             href = f.attrs.get("href", "")
-            saida.append(f'<link href="{html.escape(href)}" color="{ACENTO.hexval()[2:]}">'
+            saida.append(f'<link href="{html.escape(href)}" color="#{ACENTO.hexval()[2:]}">'
                          f"{inline(f)}</link>")
         elif f.tag == "br":
             saida.append("<br/>")
@@ -306,18 +309,70 @@ def montar(raiz, alvo, st, largura):
         fluxo.append(Paragraph(inline(headline), st["headline"]))
     fluxo.append(Spacer(1, 6))
 
+    # ======================= projetos (antes de tudo) ======================
+    # Montados primeiro de propósito: é daqui que sai a lista do que de fato
+    # entrou no papel, e a coluna lateral precisa dela para não citar projeto
+    # que o leitor não tem como consultar.
+    porta = {}
+    projetos = fonte.um(ident="projetos")
+    if projetos:
+        for art in projetos.todos("article"):
+            porta[(art.attrs.get("id") or "").replace("projeto-", "")] = art
+
+    todos_projetos = set(porta)          # o que conta como nome de projeto
+    no_pdf = set()                       # o que chegou a ser impresso
+    blocos = []
+
+    ordem = ORDEM_ALVO.get(alvo) or PROJETOS_PDF
+    escolhidos = [n for n in ordem if n in porta][:len(PROJETOS_PDF)]
+
+    for nome in escolhidos:
+        art = porta[nome]
+        corpo = []
+        for classe in ("problema", "solucao", "porque"):
+            q = art.um(classe=classe)
+            if q is None or vazio(texto_puro(q)):
+                continue
+            corpo.append(Paragraph(inline(q), st["corpo"]))
+        # Projeto sem uma linha sequer de conteúdo não entra — nem o nome,
+        # nem a lista de tecnologias. Antes a lista de tecnologias sozinha
+        # bastava para o projeto vazar para o papel.
+        if not corpo:
+            continue
+
+        no_pdf.add(nome)
+        blocos.append(Paragraph(texto_puro(art.um("h4")), st["projeto"]))
+        blocos += corpo
+        tec = art.um("ul", classe="tec")
+        if tec:
+            nomes = [texto_puro(li) for li in itens_de(tec)]
+            nomes = [n for n in nomes if not vazio(n)]
+            if nomes:
+                blocos.append(Paragraph("  ·  ".join(nomes), st["tec"]))
+        blocos.append(Spacer(1, 6))
+
     # ======================= coluna lateral ================================
     esq = []
 
     formacao = fonte.um(ident="formacao")
     if formacao:
         esq += titulo("Formação", st, primeiro=True)
-        for li in itens_de(formacao.um("ul")):
-            periodo = li.um(classe="periodo")
-            esq.append(Paragraph(sem_filhos(li, (periodo,) if periodo else ()),
-                                 st["lat"]))
-            if periodo:
-                esq.append(Paragraph(texto_puro(periodo), st["lat_meta"]))
+        # Percorre TODOS os .corpo: o HTML separa "Ensino superior" de
+        # "Educação básica" em dois blocos, e pegar só o primeiro <ul>
+        # descartava metade da formação, intercâmbio incluído.
+        for corpo in formacao.diretos("div"):
+            rotulo = corpo.um("h4")
+            if rotulo:
+                esq.append(Paragraph(texto_puro(rotulo), st["lat_forte"]))
+            lista = corpo.um("ul")
+            if not lista:
+                continue
+            for li in itens_de(lista):
+                periodo = li.um(classe="periodo")
+                esq.append(Paragraph(sem_filhos(li, (periodo,) if periodo else ()),
+                                     st["lat"]))
+                if periodo:
+                    esq.append(Paragraph(texto_puro(periodo), st["lat_meta"]))
 
     stack = fonte.um(ident="stack")
     if stack:
@@ -328,6 +383,10 @@ def montar(raiz, alvo, st, largura):
                 rotulo, usos = rotulo_e_usos(sub)
                 if vazio(rotulo):
                     continue
+                # Só cita projeto que está no documento. O que não é nome de
+                # projeto ("jogos em Unity", "este currículo") passa direto.
+                usos = [u for u in usos
+                        if u not in todos_projetos or u in no_pdf]
                 itens.append(rotulo + (f" {cinza('(' + ', '.join(usos) + ')')}"
                                        if usos else ""))
             if itens:
@@ -362,8 +421,8 @@ def montar(raiz, alvo, st, largura):
 
     if paragrafos or balas:
         dir_ += titulo("Perfil", st, primeiro=True)
-        for i, p in enumerate(paragrafos):
-            txt = inline(p)
+        for i, q in enumerate(paragrafos):
+            txt = inline(q)
             # A frase do HTML termina em ":" para apresentar a lista que vinha
             # logo abaixo dela — lista que não entra no PDF. Sem isso, o
             # parágrafo fica com dois-pontos apontando para o nada.
@@ -373,47 +432,17 @@ def montar(raiz, alvo, st, largura):
         for li in balas:
             dir_.append(Paragraph(texto_do_li(li), st["item"], bulletText="•"))
 
-    projetos = fonte.um(ident="projetos")
-    if projetos:
-        porta = {}
-        for art in projetos.todos("article"):
-            porta[(art.attrs.get("id") or "").replace("projeto-", "")] = art
-
-        ordem = ORDEM_ALVO.get(alvo) or PROJETOS_PDF
-        escolhidos = [n for n in ordem if n in porta][:len(PROJETOS_PDF)]
-
-        blocos = []
-        for nome in escolhidos:
-            art = porta[nome]
-            corpo = []
-            for classe in ("problema", "solucao", "porque"):
-                p = art.um(classe=classe)
-                if p is None or vazio(texto_puro(p)):
-                    continue
-                corpo.append(Paragraph(inline(p), st["corpo"]))
-            # Projeto sem uma linha sequer de conteúdo não entra — nem o nome,
-            # nem a lista de tecnologias. Antes a lista de tecnologias sozinha
-            # bastava para o projeto vazar para o papel.
-            if not corpo:
-                continue
-
-            blocos.append(Paragraph(texto_puro(art.um("h4")), st["projeto"]))
-            blocos += corpo
-            tec = art.um("ul", classe="tec")
-            if tec:
-                nomes = [texto_puro(li) for li in itens_de(tec)]
-                nomes = [n for n in nomes if not vazio(n)]
-                if nomes:
-                    blocos.append(Paragraph("  ·  ".join(nomes), st["tec"]))
-            blocos.append(Spacer(1, 6))
-
-        if blocos:
-            dir_ += titulo("Projetos", st)
-            dir_ += blocos
+    if blocos:
+        dir_ += titulo("Projetos", st)
+        dir_ += blocos
 
     # ======================= junta as duas colunas =========================
     larg_esq = largura * COL_ESQ
-    colunas = Table([[esq, dir_]], colWidths=[larg_esq, largura - larg_esq])
+    # splitInRow: a tabela de duas colunas é UMA linha só, e linha de tabela não
+    # quebra entre páginas por padrão. Com isto a própria linha se parte, a
+    # lateral termina na página 1 e a coluna principal continua na 2.
+    colunas = Table([[esq, dir_]], colWidths=[larg_esq, largura - larg_esq],
+                    splitByRow=1, splitInRow=1)
     colunas.setStyle(TableStyle([
         ("VALIGN",        (0, 0), (-1, -1), "TOP"),
         ("LEFTPADDING",   (0, 0), (0, 0), 0),
@@ -461,9 +490,7 @@ def main():
     try:
         doc.build(montar(raiz, args.alvo, st, largura))
     except Exception as e:
-        # As duas colunas são uma tabela de uma linha só, e tabela não quebra
-        # entre páginas: se o conteúdo passar de uma folha, o build falha.
-        sys.exit(f"Não coube em uma página: {e}\n"
+        sys.exit(f"Falha ao montar o PDF: {e}\n"
                  f"Reduza PROJETOS_PDF (hoje {PROJETOS_PDF}) ou encurte os textos.")
 
     print(f"{args.saida} gerado a partir de {args.entrada}"
