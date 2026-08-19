@@ -682,6 +682,14 @@ html.visor-aberto, html.visor-aberto body { overflow: hidden; }
    fica invisível mas ocupa largura. Em monoespaçada isso põe o bloco exatamente
    onde estaria o cursor de verdade. Com o campo focado o ghost é apagado e
    quem manda é o cursor nativo: dois cursores na mesma linha é confusão. */
+/* Contagem regressiva do próximo comando automático, ao lado do cursor.
+   Mais apagada que o ghost do autocompletar: é aviso, não sugestão. */
+.ghost .dica-tempo {
+  color: var(--verde-baixo);
+  font-size: .85em;
+  text-shadow: none;
+}
+
 .ghost .cursor {
   color: var(--verde-alto);
   text-shadow: var(--glow-forte);

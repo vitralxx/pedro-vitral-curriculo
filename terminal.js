@@ -217,6 +217,26 @@
      ficariam visíveis e completas por segundos antes de apagar e redigitar,
      que é pior do que não animar. Esvaziar as três no mesmo instante do
      carregamento resolve: ninguém vê o conteúdo antes da hora. */
+  /* Quanto tempo um bloco leva para sair.
+
+     Antes a DURAÇÃO era fixa (90 frames para tudo), então a velocidade
+     variava com o tamanho: "language", com 39 caracteres, saía a 0,4
+     caractere por frame, e "projects", com milhares, a mais de 90. Uma
+     diferença de duas ordens de grandeza, e o bloco grande virava um borrão.
+
+     Fixar a VELOCIDADE seria o extremo oposto: o bloco grande levaria meio
+     minuto. A raiz quadrada é o meio-termo: dobrar o texto aumenta a duração
+     em 40%, então o bloco maior ainda sai proporcionalmente mais rápido, mas
+     longe do borrão. Os limites cortam os extremos dos dois lados. */
+  const FRAMES_MIN = 100;    // 0,5s: nada mais rápido que isso registra
+  const FRAMES_MAX = 420;   // 7s: acima disso vira espera, não animação
+  const FRAMES_K   = 5;
+
+  function framesPara(total) {
+    return Math.min(FRAMES_MAX,
+           Math.max(FRAMES_MIN, Math.round(FRAMES_K * Math.sqrt(total))));
+  }
+
   function preparar(raiz) {
     /* Percorre ELEMENTOS e TEXTO na ordem do documento.
 
@@ -226,8 +246,24 @@
        elemento guarda quantos nós de texto vieram antes dele e fica escondido
        até a digitação chegar nele, e aí entra inteiro, com decoração e tudo,
        que é como um terminal de verdade imprime: linha a linha. */
+    /* Conteúdo de <details> fechado fica de fora. Ele não está na tela, mas
+       contava no orçamento: "projects" tem 8 mil caracteres, dos quais só uns
+       200 aparecem (os nomes dos projetos), e o resto vive dentro das fichas
+       recolhidas. O motor gastava a animação inteira digitando o invisível.
+       De quebra, quem expandir uma ficha durante a animação encontra o texto
+       lá, em vez de um bloco vazio. */
     const it = document.createTreeWalker(
-      raiz, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
+      raiz, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
+        acceptNode(no) {
+          const el = no.nodeType === Node.ELEMENT_NODE ? no : no.parentElement;
+          const pai = el && el.parentElement;
+          if (pai && pai.tagName === 'DETAILS' && !pai.open
+              && el.tagName !== 'SUMMARY') {
+            return NodeFilter.FILTER_REJECT;   // rejeita a subárvore inteira
+          }
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      });
 
     const nos = [];      // { no, texto } de cada nó de texto
     const marcos = [];   // [elemento, índice do texto que o libera]
@@ -251,7 +287,7 @@
 
   function animar(estado, aoTerminar, frames) {
     const { raiz, nos, marcos, total } = estado;
-    const porFrame = total / (frames || 90);   // 90 frames ≈ 1,5s
+    const porFrame = total / (frames || framesPara(total));
     let i = 0, pos = 0, acumulado = 0, ponteiro = 0, vivo = true;
 
     raiz.classList.add('digitando');
@@ -383,12 +419,12 @@
      ====================================================================== */
   const SEQUENCIA = ['whoami', 'edu', 'projects', 'skills', 'language', 'contact'];
 
-  const ABERTURA_FRAMES  = 240;   // ~4s de digitação do cabeçalho
-  const CONSOLE_FRAMES   = 70;    // ~1,2s montando o console
-  const CHROME_FRAMES    = 45;    // ~0,8s montando os botões F1/F2/F3
+  const ABERTURA_FRAMES  = 300;   // ~8,3s de digitação do cabeçalho
+  const CONSOLE_FRAMES   = 150;    // ~1,2s montando o console
+  const CHROME_FRAMES    = 75;    // ~0,8s montando os botões F1/F2/F3
   const ESPERA_CONVITE   = 2500;  // pausa antes de começar a se tocar sozinho
-  const ESPERA_ENTRE     = 5000;  // entre um comando e o próximo
-  const ESPERA_RETOMADA  = 12000; // silêncio do usuário antes de retomar sozinho
+  const ESPERA_ENTRE     = 8000;  // entre um comando e o próximo
+  const ESPERA_RETOMADA  = 8000; // silêncio do usuário antes de retomar sozinho
 
   /* Duas variáveis, e a distinção importa:
        autoType — a caixa marcada. É a vontade declarada do usuário.
@@ -419,6 +455,16 @@
     timer = setTimeout(fn, ms);
   }
 
+  /* Instante em que o próximo comando automático sai. Serve só para a
+     contagem regressiva no campo: saber quanto falta tira o susto de a
+     página começar a escrever sozinha do nada. */
+  let alvoContagem = 0;
+
+  function agendarToque(ms) {
+    alvoContagem = performance.now() + ms;
+    agendar(tocar, ms);
+  }
+
   /* De onde retomar: lê o que JÁ ESTÁ no console em vez de confiar num
      contador interno. Assim funciona igual se o usuário digitou o comando
      na mão, se clicou no chip, ou se rodou "clear" e zerou tudo. */
@@ -434,7 +480,8 @@
 
   function agendarRetomada() {
     clearTimeout(timer);
-    if (!autoType) return;
+    if (!autoType) { alvoContagem = 0; return; }
+    alvoContagem = performance.now() + ESPERA_RETOMADA;
     agendar(() => {
       if (!autoType) return;
       // Ainda tem texto no campo: a pessoa está no meio de um comando.
@@ -459,7 +506,7 @@
   }
 
   /* Cursor de bloco na camada ghost, logo após o texto já digitado. */
-  function mostrarCursor(texto) {
+  function mostrarCursor(texto, dica) {
     ghost.replaceChildren();
     if (texto) {
       const ja = document.createElement('span');
@@ -471,7 +518,36 @@
     cur.className = 'cursor';
     cur.textContent = '▮';
     ghost.appendChild(cur);
+
+    if (dica) {
+      const d = document.createElement('span');
+      d.className = 'dica-tempo';
+      d.textContent = '  ' + dica;
+      ghost.appendChild(d);
+    }
   }
+
+  /* Tique da contagem. Só pinta quando o campo está realmente livre: com
+     texto digitado ou com o foco no campo, quem manda no ghost é o
+     autocompletar, e duas coisas disputando o mesmo espaço viram lixo.
+     300ms é suficiente para um relógio em segundos e não custa nada. */
+  let mostrandoTempo = false;
+
+  setInterval(() => {
+    if (input.value || document.activeElement === input || emitindo) return;
+
+    const falta = (autoType && alvoContagem)
+      ? Math.ceil((alvoContagem - performance.now()) / 1000)
+      : 0;
+
+    if (falta > 0) {
+      mostrarCursor('', `próximo em ${falta}s`);
+      mostrandoTempo = true;
+    } else if (mostrandoTempo) {
+      mostrarCursor('');           // acabou a espera: devolve o campo limpo
+      mostrandoTempo = false;
+    }
+  }, 300);
 
   /* Digita o comando NO CAMPO, letra a letra, em ritmo humano.
      É a peça central: sem ver isso, ninguém entende o mecanismo. */
@@ -520,7 +596,7 @@
         // Se o usuário assumiu enquanto isto saía, quem manda é a retomada
         // que interromper() já agendou. Agendar aqui a apagaria.
         if (!autoType || pausado) return;
-        agendar(tocar, ESPERA_ENTRE);
+        agendarToque(ESPERA_ENTRE);
       });
     });
   }
@@ -707,10 +783,11 @@
       pausado = false;
       emitindo = false;
       form.classList.add('aguardando');
-      agendar(tocar, 600);
+      agendarToque(600);
     } else {
       clearTimeout(timer);
       pausado = true;
+      alvoContagem = 0;
       input.value = '';
       ghost.replaceChildren();
       form.classList.remove('aguardando');
@@ -745,7 +822,7 @@
       if (autoType && !pausado) {
         // !pausado: se alguém já mexeu durante a abertura, quem manda é a
         // retomada que interromper() agendou.
-        agendar(tocar, ESPERA_CONVITE);
+        agendarToque(ESPERA_CONVITE);
       } else if (!autoType) {
         pausado = true;
         form.classList.remove('aguardando');
