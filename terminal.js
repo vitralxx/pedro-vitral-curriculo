@@ -407,7 +407,14 @@
 
     const def = resolver(cmd);
     if (!def)       { imprimirErro(cmd); return; }
-    if (def.limpar) { saida.replaceChildren(); anuncio.textContent = 'Tela limpa.'; return; }
+    if (def.limpar) {
+      saida.replaceChildren();
+      anuncio.textContent = 'Tela limpa.';
+      // A tela vazia devolve a sequência inteira à fila; sem reagendar aqui,
+      // o auto-play ficaria parado esperando um toque que ninguém marcou.
+      if (autoType && !pausado) agendarToque(ESPERA_ENTRE);
+      return;
+    }
     imprimir(def);
   }
 
@@ -536,15 +543,24 @@
   setInterval(() => {
     if (input.value || document.activeElement === input || emitindo) return;
 
-    const falta = (autoType && alvoContagem)
+    /* proximoPendente() é a trava que importa: alvoContagem é gravado quando
+       o toque é AGENDADO, mas quem descobre que a sequência acabou é o
+       tocar(), só na hora de disparar. Sem esta checagem a contagem seguia
+       correndo para um comando que nunca viria, e pior: interromper()
+       reagenda a retomada a cada interação, então qualquer clique
+       ressuscitava a contagem com o console já completo. */
+    const falta = (autoType && alvoContagem && proximoPendente())
       ? Math.ceil((alvoContagem - performance.now()) / 1000)
       : 0;
 
     if (falta > 0) {
       mostrarCursor('', `próximo em ${falta}s`);
       mostrandoTempo = true;
-    } else if (mostrandoTempo) {
-      mostrarCursor('');           // acabou a espera: devolve o campo limpo
+    } else if (mostrandoTempo || !ghost.firstChild) {
+      // Sem contagem, mas o campo livre continua precisando do cursor: ele é o
+      // sinal de que o terminal está vivo. interromper() esvazia o ghost, e sem
+      // esta segunda condição o cursor sumia de vez depois da sequência acabar.
+      mostrarCursor('');
       mostrandoTempo = false;
     }
   }, 300);
