@@ -71,6 +71,7 @@
     skills:   { seletor: '#stack'    },
     language: { seletor: '#idiomas'  },
     contact:  { seletor: '#contato'  },
+    hobbies:  { seletor: '#interesses' },
     help:     { seletor: '#ajuda'    },
     clear:    { limpar: true         },
   };
@@ -424,7 +425,7 @@
      mas digitando no campo, para que fique claro de onde o conteúdo vem.
      Qualquer interação real assume o controle e mata o auto-play.
      ====================================================================== */
-  const SEQUENCIA = ['whoami', 'edu', 'projects', 'skills', 'language', 'contact'];
+  const SEQUENCIA = ['whoami', 'edu', 'projects', 'skills', 'language', 'contact', 'hobbies'];
 
   const ABERTURA_FRAMES  = 300;   // ~8,3s de digitação do cabeçalho
   const CONSOLE_FRAMES   = 150;    // ~1,2s montando o console

@@ -152,12 +152,18 @@ def limpar(s):
 
 
 def vazio(txt):
-    """Placeholder ainda não preenchido — não deve aparecer no PDF."""
-    return not txt or "[PREENCHER]" in txt
+    """Placeholder ainda não preenchido — não deve aparecer no PDF.
+
+    Sem o colchete de fechamento: um "[PREENCHER: dd/mm/aaaa]" também é
+    placeholder, e a checagem pelo texto exato deixava esses passarem."""
+    return not txt or "[PREENCHER" in txt
 
 
-def inline(no):
-    """Conteúdo inline em <b>/<i>/<link>, que é o que o Paragraph entende."""
+def inline(no, _raiz=True):
+    """Conteúdo inline em <b>/<i>/<link>, que é o que o Paragraph entende.
+
+    Mesmo motivo do texto_puro: limpar() em cada nível comia o espaço entre o
+    texto e o <span> seguinte."""
     saida = []
     for f in no.filhos:
         if isinstance(f, str):
@@ -166,26 +172,40 @@ def inline(no):
         if f.tem("cmd"):
             continue                      # dica de comando não existe em papel
         if f.tag in ("strong", "b"):
-            saida.append(f"<b>{inline(f)}</b>")
+            saida.append(f"<b>{inline(f, False)}</b>")
         elif f.tag in ("em", "i"):
-            saida.append(f"<i>{inline(f)}</i>")
+            saida.append(f"<i>{inline(f, False)}</i>")
         elif f.tag == "a":
             href = f.attrs.get("href", "")
             saida.append(f'<link href="{html.escape(href)}" color="#{ACENTO.hexval()[2:]}">'
-                         f"{inline(f)}</link>")
+                         f"{inline(f, False)}</link>")
         elif f.tag == "br":
             saida.append("<br/>")
         elif f.tem("periodo") or f.tem("usado-em"):
-            saida.append(f'<font color="#{SUAVE.hexval()[2:]}">{inline(f)}</font>')
+            saida.append(f'<font color="#{SUAVE.hexval()[2:]}">{inline(f, False)}</font>')
         else:
-            saida.append(inline(f))
-    return limpar("".join(saida))
+            saida.append(inline(f, False))
+    bruto = "".join(saida)
+    return limpar(bruto) if _raiz else bruto
 
 
-def texto_puro(no):
-    partes = [f if isinstance(f, str) else ("" if f.tem("cmd") else texto_puro(f))
+def texto_puro_de(marcado):
+    """Texto sem a mini-marcação, só para testar placeholder."""
+    return re.sub(r"<[^>]+>", "", marcado)
+
+
+def texto_puro(no, _raiz=True):
+    """Texto sem marcação.
+
+    _raiz existe porque limpar() faz strip: aplicá-lo em cada nó aninhado
+    comia o espaço que separava o texto do <span> seguinte, e
+    "Data de nascimento <span>17/09/2006</span>" virava um amontoado.
+    Junta cru, limpa uma vez só no fim."""
+    partes = [f if isinstance(f, str)
+              else ("" if f.tem("cmd") else texto_puro(f, False))
               for f in no.filhos]
-    return limpar("".join(partes))
+    bruto = "".join(partes)
+    return limpar(bruto) if _raiz else bruto
 
 
 # ===========================================================================
@@ -301,8 +321,18 @@ def montar(raiz, alvo, st, largura):
 
     contato = fonte.um(ident="contato")
     if contato:
-        fluxo.append(Paragraph(
-            "  ·  ".join(inline(a) for a in contato.todos("a")), st["contato"]))
+        # Todos os itens, não só os <a>: a data de nascimento é texto puro e
+        # ficava de fora quando a linha só recolhia link.
+        partes = [inline(li) for li in itens_de(contato.um("ul"))]
+        # Data de nascimento e localização vivem no #perfil, não no #contato.
+        # Em papel, dado pessoal pertence à linha de contato: sem isto eles
+        # simplesmente não chegavam ao PDF.
+        perfil_dados = fonte.um(ident="perfil")
+        if perfil_dados:
+            partes += [inline(li) for li in perfil_dados.todos("li")
+                       if li.um(classe="periodo") and not li.um("ul")]
+        partes = [x for x in partes if x and not vazio(texto_puro_de(x))]
+        fluxo.append(Paragraph("  ·  ".join(partes), st["contato"]))
 
     headline = topo.um(classe="headline")
     if headline:
@@ -392,10 +422,19 @@ def montar(raiz, alvo, st, largura):
             if itens:
                 grupos.append((texto_do_li(grupo), itens))
         if grupos:
-            esq += titulo("Competências", st)
+            esq += titulo("Conhecimentos", st)
             for nome, itens in grupos:
                 esq.append(Paragraph(nome, st["lat_forte"]))
                 esq.append(Paragraph(" · ".join(itens), st["lat_meta"]))
+
+    interesses = fonte.um(ident="interesses")
+    if interesses:
+        linhas = [texto_do_li(li) for li in itens_de(interesses.um("ul"))]
+        linhas = [l for l in linhas if not vazio(l)]
+        if linhas:
+            esq += titulo("Interesses", st)
+            for l in linhas:
+                esq.append(Paragraph(l, st["lat"]))
 
     idiomas = fonte.um(ident="idiomas")
     if idiomas:

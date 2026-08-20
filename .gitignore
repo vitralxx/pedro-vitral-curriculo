@@ -7,3 +7,6 @@ _preview_temp.html
 # tirar depois exige reescrever o histórico. Ficam no seu disco, fora do repo.
 # Para versioná-los mesmo assim, apague as duas linhas abaixo.
 imgs/*.png
+
+# Documentos de planejamento: ficam locais, não sobem
+planejamento/
