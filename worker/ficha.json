@@ -1,0 +1,769 @@
+{
+ "versao": "2026-08-20",
+ "aviso": "Ficha do Pedro. Fatos com origem 'literal' podem ser citados como afirmação sobre ele. Fatos com origem 'derivado' orientam, mas não viram afirmação.",
+ "fatos": [
+  {
+   "id": "id.nome",
+   "categoria": "identidade",
+   "titulo": "Nome completo",
+   "texto": "Pedro Carvalho Lamarca Vitral",
+   "origem": "literal"
+  },
+  {
+   "id": "id.headline",
+   "categoria": "identidade",
+   "titulo": "Como ele se apresenta no topo do currículo",
+   "texto": "Cursando Bacharelado em Inteligência Artificial na PUC-Rio. Construo sistemas de ponta a ponta, desde a modelagem do problema até o desenvolvimento completo do software, utilizando agentes de IA como ferramenta de arquitetura.",
+   "origem": "literal"
+  },
+  {
+   "id": "id.apresentacao",
+   "categoria": "identidade",
+   "titulo": "Apresentação em primeira pessoa",
+   "texto": "Prazer, me chamo Pedro Vitral. Curso Bacharelado em Inteligência Artificial na PUC-Rio e Engenharia da Computação no CEFET/RJ. Aprendi a programar sozinho, antes de entrar na graduação, e essa prática autodidata continua sendo minha maneira de absorver ferramentas novas.",
+   "origem": "literal"
+  },
+  {
+   "id": "id.foco-atual",
+   "categoria": "identidade",
+   "titulo": "A que ele se dedica hoje",
+   "texto": "Hoje me dedico ao desenvolvimento de soluções inteligentes com a ajuda de agentes LLM dedicados, aprendendo qualquer ferramenta necessária pelo caminho para resolver o problema que está na frente.",
+   "origem": "literal"
+  },
+  {
+   "id": "traj.1",
+   "categoria": "trajetoria",
+   "titulo": "Prática anterior à graduação",
+   "texto": "desenvolvendo jogos em C# na plataforma Unity",
+   "origem": "literal"
+  },
+  {
+   "id": "traj.2",
+   "categoria": "trajetoria",
+   "titulo": "Prática anterior à graduação",
+   "texto": "criando projetos pessoais de maneira independente em linguagens como Python e JavaScript",
+   "origem": "literal"
+  },
+  {
+   "id": "traj.3",
+   "categoria": "trajetoria",
+   "titulo": "Prática anterior à graduação",
+   "texto": "participando recorrentemente de fóruns de programação como Reddit e StackOverflow",
+   "origem": "literal"
+  },
+  {
+   "id": "metodo.1",
+   "categoria": "metodo",
+   "titulo": "Como ele trabalha",
+   "texto": "Sou ambicioso em relação aos meus projetos. Minha maior satisfação pessoal é entregar serviço e qualidade a quem depende dele.",
+   "origem": "literal"
+  },
+  {
+   "id": "metodo.2",
+   "categoria": "metodo",
+   "titulo": "Como ele trabalha",
+   "texto": "Procuro sempre trabalhar da forma mais eficiente possível, seja recorrendo a novas tecnologias como o Claude Code, seja reorganizando minha rotina para priorizar aquilo que almejo.",
+   "origem": "literal"
+  },
+  {
+   "id": "metodo.3",
+   "categoria": "metodo",
+   "titulo": "Como ele trabalha",
+   "texto": "Eu me considero um aprendiz rápido. Costumo testar ferramentas novas frequentemente, mesmo que não me aprofunde completamente nelas: cada artefato absorvido facilita na modelagem de problemas futuros.",
+   "origem": "literal"
+  },
+  {
+   "id": "metodo.4",
+   "categoria": "metodo",
+   "titulo": "Como ele trabalha",
+   "texto": "Uso agentes de IA como instrumento. Estou familiarizado com um fluxo LLM completo, que costuma se parecer com isto: modelar -> gerar -> revisar -> testar -> depurar -> repetir Tenho ciência das implicações éticas do uso desatento de LLMs. Por isso, faço questão de revisar cada output e assegurar que nenhuma falha de segurança escape do desenvolvimento e chegue até o usuário ou contratador.",
+   "origem": "literal"
+  },
+  {
+   "id": "objetivo.1",
+   "categoria": "objetivo",
+   "titulo": "O que o move",
+   "texto": "Ganhar experiência empresarial numa equipe que me exija mais do que eu exijo de mim.",
+   "origem": "literal"
+  },
+  {
+   "id": "objetivo.2",
+   "categoria": "objetivo",
+   "titulo": "O que o move",
+   "texto": "Estabelecer conexões profissionais duradouras com pessoas de quem eu possa aprender.",
+   "origem": "literal"
+  },
+  {
+   "id": "objetivo.3",
+   "categoria": "objetivo",
+   "titulo": "O que o move",
+   "texto": "Estudar ferramentas novas de desenvolvimento digital.",
+   "origem": "literal"
+  },
+  {
+   "id": "identidade.1",
+   "categoria": "identidade",
+   "titulo": "Dado pessoal",
+   "texto": "Data de nascimento 17/09/2006",
+   "origem": "literal"
+  },
+  {
+   "id": "identidade.2",
+   "categoria": "identidade",
+   "titulo": "Dado pessoal",
+   "texto": "Localização Rio de janeiro, Rj, Gávea",
+   "origem": "literal"
+  },
+  {
+   "id": "edu.1",
+   "categoria": "formacao",
+   "titulo": "Ensino superior",
+   "texto": "PUC-Rio — Bacharelado em Inteligência Artificial 2025.2 – previsão 2030.1",
+   "origem": "literal"
+  },
+  {
+   "id": "edu.2",
+   "categoria": "formacao",
+   "titulo": "Ensino superior",
+   "texto": "CEFET/RJ — Bacharelado em Engenharia da Computação 2025.2 – previsão 2031.2",
+   "origem": "literal"
+  },
+  {
+   "id": "edu.3",
+   "categoria": "formacao",
+   "titulo": "Educação básica",
+   "texto": "Curso PH — Ensino médio completo 2024",
+   "origem": "literal"
+  },
+  {
+   "id": "edu.4",
+   "categoria": "formacao",
+   "titulo": "Educação básica",
+   "texto": "Layton Christian Academy — Intercâmbio, Utah, Estados Unidos 2023",
+   "origem": "literal"
+  },
+  {
+   "id": "edu.5",
+   "categoria": "formacao",
+   "titulo": "Educação básica",
+   "texto": "Escola Parque — Ensino fundamental completo 2013 — 2022",
+   "origem": "literal"
+  },
+  {
+   "id": "proj.agenda-viert.resumo",
+   "categoria": "projeto",
+   "titulo": "agenda-viert: o que é",
+   "texto": "RCPSP — Resource-Constrained Project Scheduling Problem",
+   "origem": "literal",
+   "relacionado": [
+    "proj.agenda-viert.resumo",
+    "proj.agenda-viert.problema",
+    "proj.agenda-viert.solucao",
+    "proj.agenda-viert.dificuldades",
+    "proj.agenda-viert.tecnologias"
+   ]
+  },
+  {
+   "id": "proj.agenda-viert.problema",
+   "categoria": "projeto",
+   "titulo": "agenda-viert: o problema",
+   "texto": "A produção da Viert, ateliê de alta-costura, era coordenada manualmente, sem visibilidade centralizada sobre prazos, carga de trabalho e risco de atraso.\nModelagem, corte, costura e acabamento dependiam de controles individuais não integrados, o que dificultava garantir que cada peça ficasse pronta a tempo das provas com as clientes.",
+   "origem": "literal",
+   "relacionado": [
+    "proj.agenda-viert.resumo",
+    "proj.agenda-viert.problema",
+    "proj.agenda-viert.solucao",
+    "proj.agenda-viert.dificuldades",
+    "proj.agenda-viert.tecnologias"
+   ]
+  },
+  {
+   "id": "proj.agenda-viert.solucao",
+   "categoria": "projeto",
+   "titulo": "agenda-viert: a solução",
+   "texto": "Em vez de programar linha a linha, atuei como engenheiro de prompt e arquiteto do sistema, usando o Claude Code para implementar a solução de ponta a ponta, back-end e front-end, a partir dos requisitos reais do ateliê.\nO motor de scheduling resolve o problema central: prioriza pedidos pelo prazo da prova (não pela ordem de chegada), respeita a sequência fixa de etapas (modelagem, corte, costura, acabamento), verifica a disponibilidade real de cada profissional antes de alocar tarefas, e replaneja automaticamente a cada novo evento (pedido, atraso, ausência ou remarcação) sem exigir ajuste manual.\nO desenvolvimento seguiu um ciclo iterativo com o Claude Code: especificar, gerar e revisar código, testar, depurar, evoluir, repetido a cada ajuste real solicitado pelo ateliê. O sistema entrou em uso pela equipe da Viert já na primeira versão, entregue em 3 semanas, substituindo o controle manual por um painel sempre atualizado, validado por usuários não técnicos no dia a dia de produção.",
+   "origem": "literal",
+   "relacionado": [
+    "proj.agenda-viert.resumo",
+    "proj.agenda-viert.problema",
+    "proj.agenda-viert.solucao",
+    "proj.agenda-viert.dificuldades",
+    "proj.agenda-viert.tecnologias"
+   ]
+  },
+  {
+   "id": "proj.agenda-viert.dificuldades",
+   "categoria": "projeto",
+   "titulo": "agenda-viert: as dificuldades",
+   "texto": "O modelo inicial tratava cada profissional como um recurso independente. Isso quebrou quando a planilha real revelou o Audaces, uma mesa de modelagem única operada por duas pessoas em turnos diferentes: modelados como recursos separados, nada impedia o motor de agendar os dois ao mesmo tempo na mesma máquina.\nA causa era conceitual: o sistema precisava representar o posto de trabalho como o recurso escasso, não a pessoa.\nA correção introduziu um modelo em três níveis (processo, posto, pessoa) e, como efeito colateral, eliminou um número de capacidade fixo digitado manualmente: a capacidade da equipe passou a ser calculada a partir de quem ocupa cada posto.",
+   "origem": "literal",
+   "relacionado": [
+    "proj.agenda-viert.resumo",
+    "proj.agenda-viert.problema",
+    "proj.agenda-viert.solucao",
+    "proj.agenda-viert.dificuldades",
+    "proj.agenda-viert.tecnologias"
+   ]
+  },
+  {
+   "id": "proj.agenda-viert.tecnologias",
+   "categoria": "projeto",
+   "titulo": "agenda-viert: tecnologias usadas",
+   "texto": "Claude Code, Python, Google OR-Tools CP-SAT, gRPC / Protocol Buffers, TypeScript, PostgreSQL, React, NestJS, Tailwind",
+   "origem": "derivado",
+   "relacionado": [
+    "proj.agenda-viert.resumo",
+    "proj.agenda-viert.problema",
+    "proj.agenda-viert.solucao",
+    "proj.agenda-viert.dificuldades",
+    "proj.agenda-viert.tecnologias"
+   ]
+  },
+  {
+   "id": "proj.cubagem-stone.resumo",
+   "categoria": "projeto",
+   "titulo": "cubagem-stone: o que é",
+   "texto": "Calculadora de cubagem",
+   "origem": "literal",
+   "relacionado": [
+    "proj.cubagem-stone.resumo",
+    "proj.cubagem-stone.problema",
+    "proj.cubagem-stone.solucao",
+    "proj.cubagem-stone.dificuldades",
+    "proj.cubagem-stone.tecnologias"
+   ]
+  },
+  {
+   "id": "proj.cubagem-stone.problema",
+   "categoria": "projeto",
+   "titulo": "cubagem-stone: o problema",
+   "texto": "A cubagem correta de um produto é o que define o custo de frete.\nMarketplaces como Mercado Livre e Amazon não exigem as dimensões do item aos vendedores; quando exigem, frequentemente as proporções são imprecisas. Sem esse dado confiável, não há como otimizar a embalagem nem prever o custo logístico.",
+   "origem": "literal",
+   "relacionado": [
+    "proj.cubagem-stone.resumo",
+    "proj.cubagem-stone.problema",
+    "proj.cubagem-stone.solucao",
+    "proj.cubagem-stone.dificuldades",
+    "proj.cubagem-stone.tecnologias"
+   ]
+  },
+  {
+   "id": "proj.cubagem-stone.solucao",
+   "categoria": "projeto",
+   "titulo": "cubagem-stone: a solução",
+   "texto": "Aplicação web com agente LLM que infere as dimensões de um produto a partir da descrição em texto ou imagem.\nToda estimativa confirmada alimenta um banco SQLite, consultado antes de qualquer nova estimativa.\nO sistema fica progressivamente mais barato e determinístico conforme o catálogo cresce, sem depender do LLM para itens já conhecidos.",
+   "origem": "literal",
+   "relacionado": [
+    "proj.cubagem-stone.resumo",
+    "proj.cubagem-stone.problema",
+    "proj.cubagem-stone.solucao",
+    "proj.cubagem-stone.dificuldades",
+    "proj.cubagem-stone.tecnologias"
+   ]
+  },
+  {
+   "id": "proj.cubagem-stone.dificuldades",
+   "categoria": "projeto",
+   "titulo": "cubagem-stone: as dificuldades",
+   "texto": "O sistema usava o score de confiança retornado pela LLM como critério de decisão: confiança alta somada a alta similaridade retornava o registro do banco local diretamente, confiança baixa rebaixava o registro a mera referência para a LLM refinar via web.\nO problema é que esse número não media o que assumíamos. Era essencialmente binário, indicando apenas se a LLM localizou alguma fonte, sem correlação com a precisão das dimensões: confundimos disponibilidade de fonte com confiabilidade do dado, criando o risco de registros incorretos entrarem no banco com confiança alta e se propagarem silenciosamente.\nA correção removeu a confiança do fluxo de decisão e redefiniu o banco como fonte da verdade: se o produto existe, retorna direto; se não, busca online e registra.",
+   "origem": "literal",
+   "relacionado": [
+    "proj.cubagem-stone.resumo",
+    "proj.cubagem-stone.problema",
+    "proj.cubagem-stone.solucao",
+    "proj.cubagem-stone.dificuldades",
+    "proj.cubagem-stone.tecnologias"
+   ]
+  },
+  {
+   "id": "proj.cubagem-stone.tecnologias",
+   "categoria": "projeto",
+   "titulo": "cubagem-stone: tecnologias usadas",
+   "texto": "Python, SQLite, Claude Code, Google Gemini API, OpenRouter, difflib, JSON Prompt Engineering",
+   "origem": "derivado",
+   "relacionado": [
+    "proj.cubagem-stone.resumo",
+    "proj.cubagem-stone.problema",
+    "proj.cubagem-stone.solucao",
+    "proj.cubagem-stone.dificuldades",
+    "proj.cubagem-stone.tecnologias"
+   ]
+  },
+  {
+   "id": "proj.denaro-bot.resumo",
+   "categoria": "projeto",
+   "titulo": "denaro-bot: o que é",
+   "texto": "Assistente financeiro conversacional",
+   "origem": "literal",
+   "relacionado": [
+    "proj.denaro-bot.resumo",
+    "proj.denaro-bot.problema",
+    "proj.denaro-bot.solucao",
+    "proj.denaro-bot.dificuldades",
+    "proj.denaro-bot.tecnologias"
+   ]
+  },
+  {
+   "id": "proj.denaro-bot.problema",
+   "categoria": "projeto",
+   "titulo": "denaro-bot: o problema",
+   "texto": "Manter disciplina até uma meta financeira exige recalcular constantemente quanto falta, quanto resta de prazo e quanto é seguro gastar naquele dia.\nApps de orçamento tradicionais pedem que a pessoa abra uma ferramenta à parte e insira dados manualmente, o que derruba a adesão depois dos primeiros dias.",
+   "origem": "literal",
+   "relacionado": [
+    "proj.denaro-bot.resumo",
+    "proj.denaro-bot.problema",
+    "proj.denaro-bot.solucao",
+    "proj.denaro-bot.dificuldades",
+    "proj.denaro-bot.tecnologias"
+   ]
+  },
+  {
+   "id": "proj.denaro-bot.solucao",
+   "categoria": "projeto",
+   "titulo": "denaro-bot: a solução",
+   "texto": "Bot que conversa direto no WhatsApp pessoal do usuário (whatsapp-web.js), conduzindo primeiro um diagnóstico financeiro de seis perguntas e depois a definição de uma meta com prazo, valor e reserva já disponível.\nA partir dessas respostas o sistema gera duas opções de plano (ritmo rápido e ritmo equilibrado) e passa a enviar, no horário escolhido pelo próprio usuário, uma notificação diária recalculando o limite de gasto do dia: valor da meta menos valor reservado, dividido pelos dias restantes.\nUm backend em Python (FastAPI) concentra toda a lógica de estado e persiste os dados em Google Sheets, usado como banco de dados simples e inspecionável sem exigir infraestrutura própria.",
+   "origem": "literal",
+   "relacionado": [
+    "proj.denaro-bot.resumo",
+    "proj.denaro-bot.problema",
+    "proj.denaro-bot.solucao",
+    "proj.denaro-bot.dificuldades",
+    "proj.denaro-bot.tecnologias"
+   ]
+  },
+  {
+   "id": "proj.denaro-bot.dificuldades",
+   "categoria": "projeto",
+   "titulo": "denaro-bot: as dificuldades",
+   "texto": "O fluxo inicial delegava a um LLM (Gemini) tanto a extração dos valores digitados quanto o controle de qual pergunta vinha a seguir. Isso quebrou de duas formas: o modelo às vezes retornava valores genéricos em vez do número exato informado, e o limite gratuito de requisições esgotava o fluxo após poucas interações.\nA causa era conceitual: geração de linguagem probabilística não é a ferramenta certa para uma máquina de estados determinística com extração de números.\nA correção substituiu o LLM por uma máquina de estados fixa, com extração via expressões regulares e heurísticas (números por extenso, valores em reais, prazos em meses e anos, horários em formatos variados), eliminando a dependência de API externa no fluxo principal e tornando as respostas instantâneas e totalmente previsíveis.",
+   "origem": "literal",
+   "relacionado": [
+    "proj.denaro-bot.resumo",
+    "proj.denaro-bot.problema",
+    "proj.denaro-bot.solucao",
+    "proj.denaro-bot.dificuldades",
+    "proj.denaro-bot.tecnologias"
+   ]
+  },
+  {
+   "id": "proj.denaro-bot.tecnologias",
+   "categoria": "projeto",
+   "titulo": "denaro-bot: tecnologias usadas",
+   "texto": "Python, FastAPI, Node.js, whatsapp-web.js, Google Sheets API, Google Gemini API",
+   "origem": "derivado",
+   "relacionado": [
+    "proj.denaro-bot.resumo",
+    "proj.denaro-bot.problema",
+    "proj.denaro-bot.solucao",
+    "proj.denaro-bot.dificuldades",
+    "proj.denaro-bot.tecnologias"
+   ]
+  },
+  {
+   "id": "proj.khalkaria-rpg.resumo",
+   "categoria": "projeto",
+   "titulo": "khalkaria-rpg: o que é",
+   "texto": "Sistema autoral e ferramentas de autoria",
+   "origem": "literal",
+   "relacionado": [
+    "proj.khalkaria-rpg.resumo",
+    "proj.khalkaria-rpg.problema",
+    "proj.khalkaria-rpg.solucao",
+    "proj.khalkaria-rpg.dificuldades",
+    "proj.khalkaria-rpg.tecnologias"
+   ]
+  },
+  {
+   "id": "proj.khalkaria-rpg.problema",
+   "categoria": "projeto",
+   "titulo": "khalkaria-rpg: o problema",
+   "texto": "Khalkaria é um sistema de RPG de mesa autoral, escrito do zero, com regras, catálogo de itens e criaturas próprios.\nO conteúdo cresceu além do que um documento único sustenta: a mesma regra vivia em três lugares, o documento de referência, o manual dos jogadores e as fichas de criatura. Cada ajuste exigia reescrita manual nos três, e as versões divergiam sem ninguém perceber até a regra errada aparecer no meio de uma sessão.",
+   "origem": "literal",
+   "relacionado": [
+    "proj.khalkaria-rpg.resumo",
+    "proj.khalkaria-rpg.problema",
+    "proj.khalkaria-rpg.solucao",
+    "proj.khalkaria-rpg.dificuldades",
+    "proj.khalkaria-rpg.tecnologias"
+   ]
+  },
+  {
+   "id": "proj.khalkaria-rpg.solucao",
+   "categoria": "projeto",
+   "titulo": "khalkaria-rpg: a solução",
+   "texto": "Elegi uma fonte da verdade única e transformei os demais destinos em consumidores dela. O manual dos jogadores é um site estático publicado a cada versão, e as criaturas passaram a viver em um app próprio, com busca, ficha padronizada e importação em lote.\nNão escrevi o código linha a linha: atuei como arquiteto e engenheiro de prompt, usando o Claude Code para implementar, com o protocolo de edição documentado no próprio repositório, o que pode ser alterado, onde, e o que exige confirmação explícita antes de escrever. A regra mais importante desse protocolo é a mais simples: o agente propõe e questiona, nunca inventa conteúdo que não existe na fonte.\nA arte conceitual também é gerada por prompt autoral, tratada com o mesmo ciclo de qualquer outro código: hipótese, teste, diagnóstico do resultado, correção.\nToda regra nova é validada em sessões reais com jogadores não técnicos, que funcionam como teste de usabilidade: o critério de aprovação é o que sobrevive à mesa, não o que parece correto no papel.",
+   "origem": "literal",
+   "relacionado": [
+    "proj.khalkaria-rpg.resumo",
+    "proj.khalkaria-rpg.problema",
+    "proj.khalkaria-rpg.solucao",
+    "proj.khalkaria-rpg.dificuldades",
+    "proj.khalkaria-rpg.tecnologias"
+   ]
+  },
+  {
+   "id": "proj.khalkaria-rpg.dificuldades",
+   "categoria": "projeto",
+   "titulo": "khalkaria-rpg: as dificuldades",
+   "texto": "Uma sessão terminou muito fora do equilíbrio previsto e a suspeita caiu sobre os cálculos de balanceamento. A regra que sustenta o equilíbrio de todo o sistema simplesmente não estava sendo aplicada na mesa. A restrição existia no documento geral, mas nenhuma habilidade individual a mencionava, então cumpri-la dependia da memória do jogador no instante do uso.\nUma das classes acumulava cerca de quinze bônus permanentes que, isolados, pareciam pequenos e, somados, produziam um personagem fora de escala. O problema era que efeitos permanentes e acumuláveis não são observáveis um a um, e o custo real só aparece na combinação.",
+   "origem": "literal",
+   "relacionado": [
+    "proj.khalkaria-rpg.resumo",
+    "proj.khalkaria-rpg.problema",
+    "proj.khalkaria-rpg.solucao",
+    "proj.khalkaria-rpg.dificuldades",
+    "proj.khalkaria-rpg.tecnologias"
+   ]
+  },
+  {
+   "id": "proj.khalkaria-rpg.tecnologias",
+   "categoria": "projeto",
+   "titulo": "khalkaria-rpg: tecnologias usadas",
+   "texto": "Claude Code, Python, SQLite, JavaScript, HTML/CSS, GitHub Pages, Prompt Engineering, Systems Design",
+   "origem": "derivado",
+   "relacionado": [
+    "proj.khalkaria-rpg.resumo",
+    "proj.khalkaria-rpg.problema",
+    "proj.khalkaria-rpg.solucao",
+    "proj.khalkaria-rpg.dificuldades",
+    "proj.khalkaria-rpg.tecnologias"
+   ]
+  },
+  {
+   "id": "skill.1.1",
+   "categoria": "conhecimento",
+   "titulo": "Competências",
+   "texto": "Python agenda-viert, cubagem-stone, denaro-bot, khalkaria-rpg",
+   "origem": "literal"
+  },
+  {
+   "id": "skill.1.2",
+   "categoria": "conhecimento",
+   "titulo": "Competências",
+   "texto": "JavaScript denaro-bot, khalkaria-rpg",
+   "origem": "literal"
+  },
+  {
+   "id": "skill.1.3",
+   "categoria": "conhecimento",
+   "titulo": "Competências",
+   "texto": "HTML e CSS sem framework khalkaria-rpg, este currículo",
+   "origem": "literal"
+  },
+  {
+   "id": "skill.1.4",
+   "categoria": "conhecimento",
+   "titulo": "Competências",
+   "texto": "SQLite cubagem-stone, khalkaria-rpg",
+   "origem": "literal"
+  },
+  {
+   "id": "skill.1.5",
+   "categoria": "conhecimento",
+   "titulo": "Competências",
+   "texto": "Agentes LLM e engenharia de prompt agenda-viert, cubagem-stone, khalkaria-rpg",
+   "origem": "literal"
+  },
+  {
+   "id": "skill.1.6",
+   "categoria": "conhecimento",
+   "titulo": "Competências",
+   "texto": "Git e GitHub Pages khalkaria-rpg, este currículo",
+   "origem": "literal"
+  },
+  {
+   "id": "skill.2.1",
+   "categoria": "conhecimento",
+   "titulo": "Usados anteriormente, com agente de IA como par",
+   "texto": "TypeScript, React, NestJS e Tailwind agenda-viert",
+   "origem": "literal"
+  },
+  {
+   "id": "skill.2.2",
+   "categoria": "conhecimento",
+   "titulo": "Usados anteriormente, com agente de IA como par",
+   "texto": "PostgreSQL agenda-viert",
+   "origem": "literal"
+  },
+  {
+   "id": "skill.2.3",
+   "categoria": "conhecimento",
+   "titulo": "Usados anteriormente, com agente de IA como par",
+   "texto": "gRPC e Protocol Buffers agenda-viert",
+   "origem": "literal"
+  },
+  {
+   "id": "skill.2.4",
+   "categoria": "conhecimento",
+   "titulo": "Usados anteriormente, com agente de IA como par",
+   "texto": "Google OR-Tools CP-SAT agenda-viert",
+   "origem": "literal"
+  },
+  {
+   "id": "skill.2.5",
+   "categoria": "conhecimento",
+   "titulo": "Usados anteriormente, com agente de IA como par",
+   "texto": "FastAPI e Node.js denaro-bot",
+   "origem": "literal"
+  },
+  {
+   "id": "skill.2.6",
+   "categoria": "conhecimento",
+   "titulo": "Usados anteriormente, com agente de IA como par",
+   "texto": "whatsapp-web.js e Google Sheets API denaro-bot",
+   "origem": "literal"
+  },
+  {
+   "id": "skill.2.7",
+   "categoria": "conhecimento",
+   "titulo": "Usados anteriormente, com agente de IA como par",
+   "texto": "Google Gemini API e OpenRouter cubagem-stone, denaro-bot",
+   "origem": "literal"
+  },
+  {
+   "id": "skill.3.1",
+   "categoria": "conhecimento",
+   "titulo": "Fundamentos, sem uso recente",
+   "texto": "C# e Unity jogos pessoais",
+   "origem": "literal"
+  },
+  {
+   "id": "idioma.1",
+   "categoria": "idioma",
+   "titulo": "Idioma",
+   "texto": "Português Nativo",
+   "origem": "literal"
+  },
+  {
+   "id": "idioma.2",
+   "categoria": "idioma",
+   "titulo": "Idioma",
+   "texto": "Inglês Fluente",
+   "origem": "literal"
+  },
+  {
+   "id": "contato.1",
+   "categoria": "contato",
+   "titulo": "Canal de contato",
+   "texto": "vitralzin@gmail.com",
+   "origem": "literal"
+  },
+  {
+   "id": "contato.2",
+   "categoria": "contato",
+   "titulo": "Canal de contato",
+   "texto": "+55 (21) 99429-0362",
+   "origem": "literal"
+  },
+  {
+   "id": "contato.3",
+   "categoria": "contato",
+   "titulo": "Canal de contato",
+   "texto": "github.com/vitralxx",
+   "origem": "literal"
+  },
+  {
+   "id": "contato.4",
+   "categoria": "contato",
+   "titulo": "Canal de contato",
+   "texto": "linkedin.com/in/pedro-vitral",
+   "origem": "literal"
+  },
+  {
+   "id": "interesse.1.1",
+   "categoria": "interesse",
+   "titulo": "Música",
+   "texto": "Estudo teoria musical desde a infância. Hoje, componho e conduzo todo o processo criativo, além da gravação e mixagem.",
+   "origem": "literal"
+  },
+  {
+   "id": "interesse.2.1",
+   "categoria": "interesse",
+   "titulo": "Jogos",
+   "texto": "videogames, xadrez e RPG de mesa.",
+   "origem": "literal"
+  },
+  {
+   "id": "faq.disponibilidade",
+   "categoria": "faq",
+   "titulo": "Duas faculdades e o tempo para o estágio",
+   "texto": "CEFET/RJ trancado neste período. Só a PUC-Rio ativa. A previsão de conclusão do CEFET continua no currículo porque o curso será retomado.",
+   "origem": "literal"
+  },
+  {
+   "id": "faq.viert.familia",
+   "categoria": "faq",
+   "titulo": "Que empresa é a Viert",
+   "texto": "Ateliê de alta-costura no Rio de Janeiro. É empresa da família do Pedro, o que deu acesso direto à operação. Prazos, clientes e problemas de produção eram reais.",
+   "origem": "literal"
+  },
+  {
+   "id": "faq.requisitos",
+   "categoria": "faq",
+   "titulo": "Se especificou os requisitos ou só implementou",
+   "texto": "Especificou. Não recebeu documento pronto: foi à operação, entendeu prazos de prova, sequência de etapas, disponibilidade de profissionais e recursos compartilhados, e transformou em modelagem antes de gerar código.",
+   "origem": "literal"
+  },
+  {
+   "id": "faq.ingles.certificado",
+   "categoria": "faq",
+   "titulo": "Certificado de proficiência em inglês",
+   "texto": "Não há certificado formal de proficiência em inglês a citar. A evidência é o ano de intercâmbio na Layton Christian Academy, em Utah, 2023, equivalente a um ano do high school americano.",
+   "origem": "derivado"
+  },
+  {
+   "id": "disp.horarios",
+   "categoria": "disponibilidade",
+   "titulo": "Horários disponíveis para estágio",
+   "texto": "No periodo atual da faculdade, tenho reservado para estagiar: 8 horas na segunda (7-15) ; 4 horas na terça (7-11) ; 6 horas na quarta (7-13) ; 6 horas na quinta (7-13) ; 6 horas no turno da manha (7-13) ou 6 horas no turno da noite (15-21). Para deixar claro essa informação deixa de ser válida após dezembro, data onde termina meu período. Além disso, dependendo do caso, consigo extender algumas faixas de horário para estagiar entrando em contato com o centro técnico científico da PUC-rio.",
+   "origem": "literal"
+  },
+  {
+   "id": "proj.agenda-viert.remuneracao",
+   "categoria": "projeto",
+   "titulo": "agenda-viert foi remunerado",
+   "texto": "O agenda viert foi remunerado. Ganhei pela entrega e o projeto é tão valioso que pensamos em comercializar a solução para outros atelier, onde, nesse caso, eu ficaria com uma porcentagem das vendas.",
+   "origem": "literal"
+  },
+  {
+   "id": "proj.agenda-viert.escala",
+   "categoria": "projeto",
+   "titulo": "agenda-viert: escala real",
+   "texto": "O Viert Atelier usa a Agenda Viert para em média 25 pedidos por semana.",
+   "origem": "literal"
+  },
+  {
+   "id": "proj.agenda-viert.repo",
+   "categoria": "projeto",
+   "titulo": "agenda-viert: repositório",
+   "texto": "A agenda viert tem repositório, porém exige login e senha por ser um produto do atelier viert, no entanto, para analisar a a estruturação do projeto, o repositório é esse: \"https://github.com/vitralxx/agenda-viert\".",
+   "origem": "literal"
+  },
+  {
+   "id": "proj.cubagem-stone.equipe",
+   "categoria": "projeto",
+   "titulo": "cubagem-stone: contexto e equipe",
+   "texto": "A solução da cubagem foi um projeto de faculdade em uma disciplina com parceria a empresa Stone. O período de desenvolvimento (note, com intervalos entre as sessões) foi de 4 meses, mas realmente o trabalho real imputado foram 12-16 horas. Contei com mais 3 colegas que ajudaram em outras áreas do projeto: Design, bateria de testes sobre modelos llm com o objetivo de identificar nomes comerciais por descrições genéricas de produtos e modelagem do fluxograma do projeto.",
+   "origem": "literal"
+  },
+  {
+   "id": "proj.cubagem-stone.escala",
+   "categoria": "projeto",
+   "titulo": "cubagem-stone: escala real",
+   "texto": "A calculadora de cubagem da Stone não foi enriquecido com um banco de dados extenso, apenas poucos produtos(~10-20) para apresentar as funcionalidades principais.",
+   "origem": "literal"
+  },
+  {
+   "id": "proj.cubagem-stone.repo",
+   "categoria": "projeto",
+   "titulo": "cubagem-stone: repositório e como rodar",
+   "texto": "Cubagem está versionada corretamente no github, pode ser encontrada nesse link \"https://github.com/GiuColucci/Desafio_Stone/tree/cubagem_llm_with_bd\". Ao baixar o repositório, o site pode ser hospedado localmente ao executar app.py e então é só copiar o link do console e colar no navegador.",
+   "origem": "literal"
+  },
+  {
+   "id": "proj.denaro-bot.equipe",
+   "categoria": "projeto",
+   "titulo": "denaro-bot: contexto e equipe",
+   "texto": "O denaro-bot foi no período anterior ao cubagem-stone, então mesmo esquema, quase mesmo grupo. Foi uma solução mais simples, mas não quer dizer que não foi complicado, foi minha primeira experiência real em implementar uma llm em uma solução. O período de desenvolvimento foi de cerca de 3 meses, e o trabalho real imputado foram 8-12 horas.",
+   "origem": "literal"
+  },
+  {
+   "id": "proj.denaro-bot.repo",
+   "categoria": "projeto",
+   "titulo": "denaro-bot: não tem repositório",
+   "texto": "O denaro é um projeto mais antigo e infelizmente não tem repositório no github, por isso não pode ser testado diretamente pelo recrutador, porém as imagens estão disponíveis ao digitar o comando \"project/denaro-bot\".",
+   "origem": "literal"
+  },
+  {
+   "id": "proj.khalkaria-rpg.prazo",
+   "categoria": "projeto",
+   "titulo": "khalkaria-rpg: prazo e autoria",
+   "texto": "Khalkaria-Rpg é meu maior projeto da vida, de longe. Hoje +1 ano de desenvolvimento, fácil. Comecei pelo sistema de regras, inspirado por outros sitemas populares que já tive oportunidade de jogar. Em termos de horas trabalhadas deve ter +100 horas apenas no sistema, a história e worldbuilding no roll20 devem somar +50 horas. Eu fiz esse projeto completamente sozinho, sistema base, classes, raças, origens, itens, npcs, criaturas, locais, deuses e a história do mundo inteiros escritos a mão.",
+   "origem": "literal"
+  },
+  {
+   "id": "proj.khalkaria-rpg.escala",
+   "categoria": "projeto",
+   "titulo": "khalkaria-rpg: jogadores",
+   "texto": "Atualmente 6 jogadores acessam o site constantemente e me ajudam a balancear o sistema, apontando brechas e conteúdo out-dated.",
+   "origem": "literal"
+  },
+  {
+   "id": "proj.khalkaria-rpg.repo",
+   "categoria": "projeto",
+   "titulo": "khalkaria-rpg: links",
+   "texto": "Khalkaria tem site do sistema próprio e bestiário versionado no github, qualquer um pode acessar o site sistema principal por esse link: \"https://vitralxx.github.io/Khalkaria_Html/index.html\", o repositório do site: \"https://github.com/vitralxx/Khalkaria_Html\" e o repositório do bestiário: \"https://github.com/vitralxx/Khalkaria_Bestiary/tree/main/khalkaria_bestiary\"",
+   "origem": "literal"
+  },
+  {
+   "id": "skill.python.nivel",
+   "categoria": "conhecimento",
+   "titulo": "Nível de Python",
+   "texto": "Eu comecei a aprender python em 2022 pelo Curso em Video do professor Gustavo Guanabara, avancei significativamente no conteúdo, porém não terminei. Em 2024, retomei os estudos prestes a entrar na universidade estudando por meio de um curso na Udemy: \"Python: 100 Days Of Code Challenge\", rapidamente progredi no conteúdo e fiz vários projetos menores ao longo do caminho. Hoje meu nível de proficiência é o suficiente para programar eficientemente problemas de complexidade média, para mais que isso preciso apoiar em algum agente llm para partes que não domino.",
+   "origem": "literal"
+  },
+  {
+   "id": "destaque.decisao",
+   "categoria": "destaque",
+   "titulo": "Decisão técnica de que mais se orgulha",
+   "texto": "No projeto da cubagem, inicialmente o plano modelado continham apenas 1 agente llm para muitas funções do site: Encontrar o nome comercial do produto através de uma descrição, Encontrar o nome comercial do produto através de uma foto, Encontrar as dimensões do produto através de um nome comercial e Calcular o volume necessário para transporte numa caixa de tamanho recomendado pelo correio. Eram diversas funções para apenas um agente com prompt enorme, a previsão do meu grupo é de que ele iria dar conta de todas essas tarefas. No entanto, eu propus modularizar cada função: Um agente llm individual para encontrar o nome do produto comercial através de uma descrição ou foto, um agente especializado em web-scraping para extrair as dimensões do site oficial do fornecedor do produto e uma função completa personalizada contendo 13 categorias e dezenas de sub-categorias para adaptar o tamanho da caixa resultante conforme a natureza do produto. Essa subdivisão foi perfeita pois poderiamos trabalhar nelas de maneira conjunta, cada um atacando um processo diferente. Após isso, rapidamente o projeto foi finalizado, a única coisa que restou foi uma extensa bateria de testes para preencher o Banco de Dados proposto futuramente no período.",
+   "origem": "literal"
+  },
+  {
+   "id": "destaque.erro",
+   "categoria": "destaque",
+   "titulo": "Algo que deu errado e não foi consertado",
+   "texto": "No projeto do denaro, agente finaneceiro de conversa no whatsapp, nos tentamos muitas alternativas antes de chegar no produto final. O problema é que não queriamos vincular nenhum dos nossos telefones pessoais ao projeto, dai, testamos diversas apis sem sucesso, todas exigiam pagamento e tinham propriedades que as deixavam incompativeis com a idealização do projeto. Também tentei criar números virtuais e pegar o celular de familiares emprestado para testar, porém, novamente, a vinculação do celular no projeto fazia qualquer mensagem que o celular recebesse no whatsapp ser respondida com o chatbot e meus familiares não estavam dispostos a isso. Por fim, eu simplesmente vinculei o meu próprio celular, sabendo dos riscos. Eu sabia que o projeto não teria a independência que tinhamos estipulado, porém foi uma experiência interessante, varios amigos que me mandaram mensagem involuntáriamente estavam testando a solução do meu grupo e isso acabou que fiquei sem o whatsapp por 2 dias para testar as mensagens programadas por horário.",
+   "origem": "literal"
+  },
+  {
+   "id": "limite.matematica",
+   "categoria": "limite",
+   "titulo": "Onde trava",
+   "texto": "Eu travo onde tem matemática muito complexa. Adoro modelar problemas e criar as funcionalidades para resolve-los, porém quando o problema inteiro é matemático eu costumo demorar mais para projetar uma solução eficiente. Não que isso seja um impedimento total, a agenda viert faz cálculos poderosos com o google cp-sat, porém isso foi com ajuda de llm, se fosse para fazer na mão, com certeza iria ter mais dificuldade. De resto, eu sinto que estou pronto para atacar qualquer problema ou software requisitado.",
+   "origem": "literal"
+  },
+  {
+   "id": "metodo.aprendizado",
+   "categoria": "metodo",
+   "titulo": "Como aprende, na prática",
+   "texto": "Normalmente, depende do que estou aprendendo. Se for uma linguagem, busco cursos on-line e a documentação oficial como apoio, depois de um tempo de aprendizado começo a fazer projetos independentes e integrar esse conhecimento no meu fluxo de llm. Eu regularmente tento distanciar o meu aprendizado de llms, no sentido de que muitas vezes o processo de chegar até a resposta ensina muito mais que fórmular a pergunta certa para obter essa resposta. Na faculdade, eu anoto muito no papel, faço resumos e exercícios. A última ferramenta que eu ando aprendendo é web developing, atualmente estou aprendendo css, seguindo o mesmo fluxo de aprendizado citado anteriormente.",
+   "origem": "literal"
+  },
+  {
+   "id": "traj.inicio",
+   "categoria": "trajetoria",
+   "titulo": "Como começou a programar",
+   "texto": "Eu comecei a programar por volta dos 14 anos, através de aplicações como Unity, RPG maker VX e Godot. O que voltou minha atenção para essa área era meu hobby de jogar, sempre me perguntei como um jogo era construido, então busquei por esse conhecimento na internet. A primeira coisa que eu desenvolvi foram projetos tutorias de videos do youtube no Unity, tudo com assets prontos disponiblizados pelo video, porém o código era tudo à mão, foi ai que eu aprendi o básico de C#. Eu infelizmente perdi a maioria dos jogos que fiz no passado no Unity, por ter começado tão novo, formatei meu pc algumas vezes e perdi os arquivos.",
+   "origem": "literal"
+  },
+  {
+   "id": "edu.cr",
+   "categoria": "formacao",
+   "titulo": "Coeficiente de rendimento",
+   "texto": "CR do 1º semestre: 8,4.",
+   "origem": "literal"
+  },
+  {
+   "id": "proj.cubagem-stone.creditos",
+   "categoria": "projeto",
+   "titulo": "cubagem-stone: crédito de equipe",
+   "texto": "Projeto de disciplina em parceria com a Stone, em um grupo de quatro integrantes. A arquitetura de blocos modularizados foi proposta minha.",
+   "origem": "literal",
+   "relacionado": [
+    "proj.cubagem-stone.equipe",
+    "destaque.decisao"
+   ]
+  },
+  {
+   "id": "proj.denaro-bot.creditos",
+   "categoria": "projeto",
+   "titulo": "denaro-bot: crédito de equipe",
+   "texto": "Projeto de disciplina em grupo. Foi minha primeira experiência real em implementar uma LLM em uma solução.",
+   "origem": "literal",
+   "relacionado": [
+    "proj.denaro-bot.equipe"
+   ]
+  }
+ ]
+}

@@ -55,6 +55,22 @@
          de cada resposta de uma vez só, quando a digitação termina. -->
     <div id="anuncio" class="sr-only" role="status" aria-live="polite"></div>
 
+    <!-- VITR0-L4, na goteira esquerda. Fora da coluna de leitura de propósito:
+         rosto no meio do texto disputa atenção com o conteúdo.
+         aria-hidden porque é decoração; quem usa leitor de tela recebe o texto
+         pelo #anuncio, e ASCII lido caractere a caractere seria ruído puro. -->
+    <div id="vitr0" class="vitr0" data-estado="minimizado" data-revelado="false">
+      <button type="button" id="vitr0-alternar" class="vitr0-cabecalho"
+              aria-expanded="false" aria-controls="vitr0-corpo">
+        <!-- data-texto alimenta os dois pseudo-elementos do glitch no CSS -->
+        <span class="vitr0-nome" data-texto="VITR0-L4">VITR0-L4</span>
+        <span class="vitr0-sinal" aria-hidden="true"></span>
+      </button>
+      <!-- aria-hidden: o rosto é decoração. Quem usa leitor de tela recebe o
+           texto pelo #anuncio; ASCII lido caractere a caractere seria ruído. -->
+      <div class="vitr0-corpo" id="vitr0-corpo" aria-hidden="true"></div>
+    </div>
+
     <!-- Grudado no rodapé da janela: o recrutador tem que VER o comando sendo
          escrito, senão nunca entende que digitar libera conteúdo. -->
     <div class="console">
@@ -62,6 +78,7 @@
          lendo mais acima. Arrastar a tela de quem está lendo é irritante;
          avisar e deixar ele decidir, não. -->
     <button type="button" id="novidade" class="novidade" hidden>▼ conteúdo novo</button>
+
     <form id="terminal-form" hidden>
       <div class="linha-topo">
         <p class="convite">Este currículo responde a comandos. Experimente:</p>
@@ -396,10 +413,19 @@
               <p class="subtitulo">Assistente financeiro conversacional</p>
               <p class="subtitulo">Projeto de disciplina em grupo. Foi minha primeira experiência real em implementar uma LLM em uma solução.</p>
 
-              <!-- TODO: prints do chat funcionando no WhatsApp.
-                   Quando tiver, copie o bloco .galeria de outro projeto e troque
-                   os src, os alt e o contador. Esconda números e contatos reais
-                   antes de publicar. -->
+              <div class="galeria">
+                <div class="galeria-quadro">
+                  <img class="ativa" src="imgs/denaro-1.webp"
+                       alt="Três telas da entrevista inicial do Denaro: o bot se apresenta como assistente financeiro pessoal e pergunta quanto a pessoa gasta com contas mensais, se tem controle sobre o próprio dinheiro e qual a maior dificuldade para economizar; ao final, pergunta qual é o objetivo financeiro de curto prazo e recebe a resposta &quot;comprar um tablet&quot;. O rodapé indica Google Gemini e armazenamento em Google Sheets.">
+                  <img src="imgs/denaro-2.webp"
+                       alt="Duas telas do Denaro montando o plano: à direita ele coleta o valor da meta, o prazo desejado e quanto a pessoa já tem guardado; à esquerda devolve o plano pronto para comprar um tablet, com valor da meta, quanto falta guardar e duas opções — uma rápida em um mês e uma equilibrada em dois — cada uma com o quanto economizar por mês.">
+                  <button type="button" class="galeria-btn galeria-ant"
+                          data-passo="-1" aria-label="Imagem anterior">[&lt;]</button>
+                  <button type="button" class="galeria-btn galeria-prox"
+                          data-passo="1" aria-label="Próxima imagem">[&gt;]</button>
+                </div>
+                <p class="galeria-contador">1 / 2</p>
+              </div>
 
               <div class="problema">
                 <p class="rotulo"><strong>Problema:</strong></p>
@@ -667,6 +693,8 @@
 
 <!-- defer: espera o HTML existir antes de rodar, sem bloquear a renderização -->
 <script src="ui.js" defer></script>
+<script src="ascii-face.js" defer></script>
+<script src="avatar.js" defer></script>
 <script src="terminal.js" defer></script>
 </body>
 </html>

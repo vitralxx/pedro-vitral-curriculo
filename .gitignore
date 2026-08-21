@@ -10,3 +10,10 @@ imgs/*.png
 
 # Documentos de planejamento: ficam locais, não sobem
 planejamento/
+
+# Cloudflare Worker: dependências e cache local do wrangler
+worker/node_modules/
+worker/.wrangler/
+worker/src/_gerado_para_teste.mjs
+
+worker/tail.log

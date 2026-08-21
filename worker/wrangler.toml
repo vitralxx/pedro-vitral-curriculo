@@ -1,0 +1,67 @@
+# =============================================================================
+# wrangler.toml — configuração do proxy do VITR0-L4
+#
+# Este arquivo VAI para o Git. Repare que não há segredo nenhum aqui: a chave da
+# API e o segredo do HMAC entram por `wrangler secret put`, ficam guardados na
+# Cloudflare e nunca tocam o repositório. Só o que é ajuste de comportamento
+# mora aqui, e ajuste de comportamento é justamente o que faz sentido versionar.
+# =============================================================================
+
+name = "vitr0-l4"
+main = "src/index.js"
+compatibility_date = "2026-08-20"
+
+# -----------------------------------------------------------------------------
+# Onde o KV guarda os contadores do limite de taxa.
+#
+# Criar antes do primeiro deploy e colar o id aqui:
+#     npx wrangler kv namespace create ESTADO
+#
+# Não guarda IP, não guarda pergunta, não guarda conversa: só contadores, e
+# todos expiram sozinhos em uma hora ou um dia.
+# -----------------------------------------------------------------------------
+[[kv_namespaces]]
+binding = "ESTADO"
+id = "6d381ca031134d3ebd50d9bfd083c3d4"
+
+[vars]
+
+# O modelo fica aqui, e não no código, porque nome de modelo é a coisa que mais
+# muda nesse ecossistema. Trocar aqui e redeployar é mais barato que editar JS.
+#
+# Provado no primeiro deploy, em 21/08/2026: o gemini-2.5-flash já tinha sido
+# aposentado para contas novas, e a API respondeu 404 dizendo qual usar no lugar.
+# Uma linha de config e um deploy resolveram; se estivesse no código, seria uma
+# edição de JS para uma coisa que não é lógica.
+MODELO = "gemini-3.6-flash"
+
+# Lista fechada de origens. CORS não impede chamada fora do navegador — nunca
+# impediu — mas impede que o site de outra pessoa gaste a cota do Pedro com os
+# visitantes dela. O localhost é para desenvolvimento; tire antes de ir ao ar
+# se quiser apertar mais.
+ORIGENS = "https://vitralxx.github.io,http://localhost:8000,http://127.0.0.1:8000"
+
+# Os três tetos. Por IP na hora, por IP no dia, e o global do dia.
+#
+# O global é o que de fato protege a conta: os dois primeiros seguram o visitante
+# curioso, e o terceiro segura o dia em que alguém resolve rodar de mil IPs.
+# O global vem em 300, e não nos 500 do planejamento, porque a ficha ficou com
+# ~12.400 tokens em vez dos ~6.000 previstos: o custo por pergunta dobrou junto.
+# Escolha o seu com a tabela de preços aberta. 300 por dia é muito mais do que um
+# portfólio recebe, e o dia em que esse número for atingido é quase certamente um
+# ataque, não sucesso.
+#
+# Batido o global, o terminal volta ao comportamento normal até o dia seguinte —
+# o currículo inteiro continua acessível pelos comandos, que é o que importa.
+# Subiu de 10/30 em 21/08/2026. O teto de 10 por hora foi batido no primeiro dia
+# de testes, e o motivo é instrutivo: o limite é por IP, e um recrutador mostrando
+# o site a um colega, ou o Pedro demonstrando numa entrevista, gasta as duas cotas
+# do mesmo endereço. Dez perguntas é menos que uma conversa.
+# 40 depois da bateria adversarial de 21/08/2026, que estourou os 25 sozinha.
+# Subir este número é barato porque não é ele que protege a conta: quem faz isso
+# é o teto do DIA (60 por IP) e o GLOBAL (300). O teto da hora existe para o
+# visitante que resolve brincar, e 40 continua sendo mais do que qualquer
+# conversa de verdade — mas cabe uma sessão de testes sem travar o trabalho.
+LIMITE_HORA = "40"
+LIMITE_DIA = "60"
+LIMITE_GLOBAL = "300"

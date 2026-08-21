@@ -1,0 +1,42 @@
+[
+ {
+  "cmd": "whoami",
+  "faz": "perfil"
+ },
+ {
+  "cmd": "edu",
+  "faz": "formação"
+ },
+ {
+  "cmd": "projects",
+  "faz": "lista os projetos"
+ },
+ {
+  "cmd": "projects/<nome>",
+  "faz": "abre um projeto em detalhe"
+ },
+ {
+  "cmd": "skills",
+  "faz": "competências"
+ },
+ {
+  "cmd": "language",
+  "faz": "idiomas"
+ },
+ {
+  "cmd": "contact",
+  "faz": "e-mail, telefone e links"
+ },
+ {
+  "cmd": "hobbies",
+  "faz": "interesses fora do trabalho"
+ },
+ {
+  "cmd": "clear",
+  "faz": "limpa a tela"
+ },
+ {
+  "cmd": "help",
+  "faz": "a lista de comandos"
+ }
+]

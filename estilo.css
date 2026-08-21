@@ -719,6 +719,34 @@ html.js #fonte { display: none; }
 
 .erro { color: var(--verde-alto); }
 
+/* --------------------------------------------------------------------------
+   A fala do VITR0-L4
+
+   Ela precisa se distinguir da saída do currículo sem virar outra coisa: quem
+   está lendo tem que saber que ali é o agente falando, e não o terminal
+   imprimindo um bloco. A barra à esquerda faz isso sem gastar cor nova nem
+   inventar tipografia — é o mesmo recurso de citação que todo terminal usa.
+
+   Quando a resposta é enlatada ela também ganha .erro, e o verde alto já marca
+   que aquilo foi contenção e não fluência normal. Nenhuma das duas cores é
+   inventada aqui: as duas já existem na paleta e as duas passam AA.
+   -------------------------------------------------------------------------- */
+.resposta.agente {
+  border-left: 2px solid var(--verde-baixo);
+  padding-left: var(--e2);
+  color: var(--verde-medio);
+}
+
+/* As ofertas do agente. Ele PROPÕE; quem clica é o visitante — e por isso elas
+   são botões parados embaixo da resposta, e não algo que acontece sozinho. */
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e1);
+  margin-top: var(--e2);
+  padding-left: calc(var(--e2) + 2px);   /* alinha com o texto da fala dele */
+}
+
 /* Elemento que a digitação ainda não alcançou. O motor põe e tira esta classe
    conforme imprime, e é ela que faz guia de árvore, marcador [+]/[-], linha
    divisória e dica de comando entrarem junto com a linha a que pertencem, em
@@ -750,6 +778,166 @@ html.js #fonte { display: none; }
 }
 .novidade[hidden] { display: none; }
 .novidade:hover, .novidade:focus-visible { background: var(--verde-baixo); color: var(--fundo); }
+
+/* --------------------------------------------------------------------------
+   9c. VITR0-L4
+   Mora na goteira ESQUERDA, simétrico à barra de botões que fica na direita.
+   Fora da coluna de leitura de propósito: rosto no meio do texto disputa
+   atenção com o conteúdo, e o conteúdo é o que precisa ser lido.
+
+   Nasce MINIMIZADO: só a placa com o nome. O rosto abre quando o agente fala,
+   ou quando o visitante clica. Um rosto animado permanente na periferia da
+   visão cansa e rouba a atenção de um currículo que é feito de texto.
+
+   Só existe a partir de 1320px, que é onde o tamanho FALANDO (231px) cabe ao
+   lado da coluna sem cobrir texto. Abaixo disso some: largura de leitura vale
+   mais que enfeite.
+   -------------------------------------------------------------------------- */
+.vitr0 { display: none; }
+
+@media (min-width: 1320px) {
+  /* Antes da primeira chamada ele não existe. Aparecer do nada, já falando,
+     no canto do olho de quem está lendo, assusta. Ele só se materializa
+     quando é chamado, e com aviso: a chegada tem 0,85s de glitch. */
+  .vitr0[data-revelado="false"] { display: none; }
+
+  .vitr0[data-chegando="true"] {
+    animation: vitr0-chegada .85s steps(1) both;
+    transform-origin: bottom left;   /* cresce a partir do canto onde mora */
+  }
+
+  /* steps(1) de propósito: interpolação suave viraria fade, e fade é linguagem
+     de interface moderna. Máquina antiga materializa aos trancos. */
+  @keyframes vitr0-chegada {
+    0%   { opacity: 0; transform: translateX(-16px) scaleY(.02); filter: brightness(3); }
+    10%  { opacity: 1; transform: translateX(7px)   scaleY(.04); }
+    18%  { opacity: 0; transform: translateX(-4px)  scaleY(.04); }
+    27%  { opacity: 1; transform: translateX(-9px)  scaleY(.38); filter: brightness(1.8); }
+    38%  { opacity: .25; transform: translateX(5px) scaleY(.72); }
+    49%  { opacity: 1; transform: translateX(-3px)  scaleY(1.08); filter: none; }
+    60%  { opacity: .55; transform: translateX(3px) scaleY(.96); }
+    71%  { opacity: 1; transform: translateX(-1px)  scaleY(1.02); }
+    82%  { opacity: .35; transform: none; }
+    100% { opacity: 1;  transform: none; }
+  }
+
+  /* text-animation desligado: ele aparece, mas sem espetáculo. */
+  .vitr0[data-anim="false"][data-chegando="true"] { animation: none; }
+
+  /* ---- onde ele mora ----
+
+     Ancorado pela DIREITA, e não pela esquerda, e isso resolve o clipping. A
+     borda direita dele fica colada na borda esquerda da coluna de leitura; ao
+     crescer de charSize 4 para 6 ele se estica para FORA, na direção da margem
+     vazia, nunca por cima do texto. Com `left` seria o contrário: cresceria
+     para dentro do terminal, que é exatamente o que não pode.
+
+     A altura tem dois pousos. `console` alinha com o console, que é sticky no
+     rodapé — é a posição de repouso, ao lado de quem digita. `fala` sobe para a
+     faixa logo acima do console, que é onde a resposta mais recente está: como
+     o console gruda no rodapé e a página desce sozinha até a última linha, essa
+     faixa É a mensagem, sem precisar perseguir elemento nenhum com listener de
+     rolagem. O movimento acontece durante o "pensando", quando mais nada está
+     se mexendo na tela. */
+  .vitr0 {
+    display: block;
+    position: fixed;
+    right: calc(100% - var(--coluna-esq, 50%) + var(--e3));
+    bottom: var(--altura-chrome);
+    z-index: 40;                 /* abaixo do console (50) e do chrome (100) */
+    transition: bottom .5s cubic-bezier(.2, .7, .3, 1);
+  }
+
+  .vitr0[data-onde="fala"] {
+    bottom: calc(var(--altura-chrome) + var(--console-altura, 6rem) + var(--e2));
+  }
+
+  /* Sem animação, sem deslize: ele salta para o lugar e pronto. */
+  .vitr0[data-anim="false"] { transition: none; }
+
+  /* ---- placa com o nome ---- */
+  .vitr0-cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1ch;
+    width: 100%;
+    border: 1px solid var(--verde-baixo);
+    background: var(--fundo);
+    color: var(--verde-medio);
+    padding: var(--e1) var(--e2);
+    font-size: .8rem;
+    letter-spacing: .1em;
+    cursor: pointer;
+    transition: color .12s, border-color .12s, box-shadow .12s;
+  }
+  .vitr0-cabecalho:hover,
+  .vitr0-cabecalho:focus-visible {
+    color: var(--verde-alto);
+    border-color: var(--verde-alto);
+    box-shadow: var(--glow-forte);
+  }
+
+  .vitr0-sinal::before { content: "[+]"; color: var(--verde-baixo); }
+  .vitr0[data-estado="aberto"] .vitr0-sinal::before { content: "[–]"; }
+
+  /* ---- glitch no nome ----
+     Dois clones coloridos por cima do original, deslocados e recortados em
+     faixas. É o mesmo truque do rgbSplit do rosto, feito em CSS. */
+  .vitr0-nome { position: relative; display: inline-block; }
+  .vitr0-nome::before,
+  .vitr0-nome::after {
+    content: attr(data-texto);
+    position: absolute;
+    left: 0; top: 0;
+    width: 100%;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .vitr0-nome::before { color: #ff0040; animation: vitr0-glitch-a 3.2s infinite steps(1); }
+  .vitr0-nome::after  { color: #00d0ff; animation: vitr0-glitch-b 2.7s infinite steps(1); }
+
+  @keyframes vitr0-glitch-a {
+    0%, 88%  { clip-path: inset(100% 0 0 0); transform: none; }
+    89%      { clip-path: inset(10% 0 60% 0); transform: translateX(-2px); }
+    92%      { clip-path: inset(55% 0 20% 0); transform: translateX(2px); }
+    95%      { clip-path: inset(25% 0 45% 0); transform: translateX(-1px); }
+    97%,100% { clip-path: inset(100% 0 0 0); transform: none; }
+  }
+  @keyframes vitr0-glitch-b {
+    0%, 90%  { clip-path: inset(100% 0 0 0); transform: none; }
+    91%      { clip-path: inset(45% 0 25% 0); transform: translateX(2px); }
+    94%      { clip-path: inset(15% 0 65% 0); transform: translateX(-2px); }
+    96%,100% { clip-path: inset(100% 0 0 0); transform: none; }
+  }
+
+  /* A caixa text-animation é o mecanismo de parada de TODO movimento do site.
+     O glitch obedece a ela como o resto. */
+  .vitr0[data-anim="false"] .vitr0-nome::before,
+  .vitr0[data-anim="false"] .vitr0-nome::after { animation: none; }
+
+  /* ---- corpo ---- */
+  .vitr0-corpo {
+    line-height: 0;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height .28s ease-out;
+  }
+  .vitr0[data-estado="aberto"] .vitr0-corpo { max-height: 60vh; }
+
+  .vitr0-corpo canvas {
+    display: block;
+    border: 1px solid var(--verde-baixo);
+    border-top: 0;
+    background: #000;
+    transition: width .25s ease-out, height .25s ease-out;
+  }
+
+  /* Parado ele continua sendo um rosto, só apaga um pouco. */
+  .vitr0[data-rodando="false"] .vitr0-corpo canvas { opacity: .45; }
+}
+
+@media print { .vitr0 { display: none !important; } }
 
 /* --------------------------------------------------------------------------
    10. CHIPS

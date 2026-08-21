@@ -59,6 +59,28 @@
 
   const PROMPT = 'comando:>';
 
+  /* O avatar precisa saber a altura do console para achar a faixa logo acima
+     dele, que é onde a resposta mais recente aparece. Essa altura não é fixa:
+     os chips quebram em duas linhas conforme a janela. Então ela é medida, e
+     remedida quando muda — número chutado no CSS ficaria errado em metade das
+     larguras. */
+  if (consoleEl && 'ResizeObserver' in window) {
+    const medir = () => {
+      const caixa = consoleEl.getBoundingClientRect();
+      const raiz = document.documentElement.style;
+      raiz.setProperty('--console-altura', caixa.height + 'px');
+      /* E a borda esquerda da coluna. Calcular isso no CSS a partir de
+         --largura erra por alguns pixels: a unidade ch depende da fonte do
+         elemento onde é lida, e a coluna ainda tem o preenchimento do container
+         por fora. Sete pixels de erro é o suficiente para o rosto encostar no
+         texto. Medido, o número está sempre certo. */
+      raiz.setProperty('--coluna-esq', caixa.left + 'px');
+    };
+    new ResizeObserver(medir).observe(consoleEl);
+    addEventListener('resize', medir);
+    medir();
+  }
+
   /* ======================================================================
      1. DICIONÁRIO DE COMANDOS
      ====================================================================== */
@@ -158,7 +180,8 @@
      O navegador bloqueia áudio antes do primeiro gesto do usuário, então o
      contexto só nasce no primeiro clique ou tecla.
      ====================================================================== */
-  let ctx = null, ruido = null, ultimoClique = 0;
+  let ctx = null, ruido = null, ruidoGrave = null;
+  let ultimoClique = 0, ultimoGrave = 0;
 
   function ligarAudio() {
     if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
@@ -171,24 +194,156 @@
     for (let i = 0; i < d.length; i++) {
       d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3);
     }
+
+    /* O segundo ruído é a voz do VITR0-L4: quatro vezes mais longo e com
+       decaimento mais lento (expoente 1.6 contra 3). O expoente é o que muda o
+       caráter — decaimento abrupto vira estalo de tecla, decaimento arrastado
+       vira sílaba. Mesmo material, gesto diferente. */
+    const durGrave = 0.085;
+    ruidoGrave = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * durGrave), ctx.sampleRate);
+    const g = ruidoGrave.getChannelData(0);
+    for (let i = 0; i < g.length; i++) {
+      g[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / g.length, 1.6);
+    }
+  }
+
+  const somLigado = () => document.documentElement.dataset.som === 'on' && ctx;
+
+  /* Um estalo é ruído por um passa-banda. Só três coisas separam a tecla da
+     voz: o buffer, a faixa de frequência e o intervalo mínimo entre dois. */
+  function bater(buffer, freq, largura, volume) {
+    const src = ctx.createBufferSource(); src.buffer = buffer;
+    const filtro = ctx.createBiquadFilter();
+    filtro.type = 'bandpass';
+    filtro.frequency.value = freq;
+    filtro.Q.value = largura;
+    const vol = ctx.createGain(); vol.gain.value = volume;
+    src.connect(filtro).connect(vol).connect(ctx.destination);
+    src.start();
   }
 
   function estalo() {
-    if (document.documentElement.dataset.som !== 'on' || !ctx) return;
+    if (!somLigado()) return;
     // Limitador: sem ele, digitação rápida vira metralhadora com clipping.
     const agora = performance.now();
     if (agora - ultimoClique < 40) return;
     ultimoClique = agora;
 
-    const src = ctx.createBufferSource(); src.buffer = ruido;
-    const filtro = ctx.createBiquadFilter();
-    filtro.type = 'bandpass';
-    filtro.frequency.value = 1500 + Math.random() * 900;
-    filtro.Q.value = 0.7;
-    const vol = ctx.createGain(); vol.gain.value = 0.06;
-    src.connect(filtro).connect(vol).connect(ctx.destination);
-    src.start();
+    bater(ruido, 1500 + Math.random() * 900, 0.7, 0.06);
   }
+
+  /* A voz dele. Mais grave e mais longa que a tecla, e mais espaçada: 90ms de
+     intervalo mínimo contra 40ms. É isso que faz soar como fala e não como
+     digitação — a boca dele se mexe mais devagar que os dedos de alguém.
+
+     Não é um som novo por cima do texto; é o MESMO gesto do estalo, com outro
+     timbre. Quando o terminal imprime currículo você ouve teclado; quando o
+     VITR0-L4 fala você ouve a máquina falando. Dois emissores, dois timbres. */
+  function estaloGrave() {
+    if (!somLigado()) return;
+    const agora = performance.now();
+    if (agora - ultimoGrave < 90) return;
+    ultimoGrave = agora;
+    bater(ruidoGrave, 260 + Math.random() * 190, 1.4, 0.055);
+  }
+
+  /* O contexto de áudio só pode nascer dentro de um gesto do usuário — é regra
+     do navegador. Ele nascia só no primeiro toque no campo ou clique num chip,
+     e isso tinha um efeito silencioso e chato: quem ligava o som no F3 e ficava
+     assistindo não ouvia NADA, porque a animação toca estalo() e estalo()
+     desiste quando não há contexto. Ligar o som é um gesto tão bom quanto os
+     outros, então serve para acordar o áudio. */
+  new MutationObserver(() => {
+    if (document.documentElement.dataset.som === 'on') ligarAudio();
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-som'] });
+
+  addEventListener('pointerdown', ligarAudio, { once: true });
+  addEventListener('keydown', ligarAudio, { once: true });
+
+  /* ----------------------------------------------------------------------
+     A voz do VITR0-L4
+
+     Mesmo esquema do estalo: tudo sintetizado, zero arquivo baixado. A regra
+     que mantém isso barato é que nenhum som dura mais do que o gesto que ele
+     acompanha, e o único contínuo (o zumbido) é desligado por quem o ligou.
+
+     Volumes baixos de propósito. Som de interface que se impõe é som que a
+     pessoa desliga, e aí ela perde os outros junto.
+     ---------------------------------------------------------------------- */
+  function tom(freq, dur, tipo, volume, freqFinal) {
+    if (!somLigado()) return;
+    const t0 = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    osc.type = tipo || 'square';
+    osc.frequency.setValueAtTime(freq, t0);
+    if (freqFinal) osc.frequency.exponentialRampToValueAtTime(freqFinal, t0 + dur);
+    const vol = ctx.createGain();
+    vol.gain.setValueAtTime(0.0001, t0);
+    vol.gain.linearRampToValueAtTime(volume, t0 + 0.012);
+    vol.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(vol).connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.03);
+  }
+
+  /* Chegada: um capacitor carregando. Três estalos secos e desalinhados, e uma
+     varredura subindo por baixo — casa com os 0,85s de glitch da materialização. */
+  function chegada() {
+    if (!somLigado()) return;
+    for (let n = 0; n < 3; n++) {
+      setTimeout(() => { ultimoClique = 0; estalo(); }, n * 95 + Math.random() * 50);
+    }
+    tom(90, 0.55, 'sawtooth', 0.05, 520);
+  }
+
+  /* Zumbido: o motor girando enquanto ele procura. Contínuo, grave, com uma
+     oscilação leve para não soar como um tom puro de teste de áudio. */
+  let zunido = null;
+  function zumbido(ligar) {
+    if (!ligar) {
+      if (zunido) { zunido.parar(); zunido = null; }
+      return;
+    }
+    if (zunido || !somLigado()) return;
+
+    const t0 = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    osc.type = 'triangle';
+    osc.frequency.value = 68;
+
+    const lfo = ctx.createOscillator();          // trêmulo do motor
+    lfo.frequency.value = 5.5;
+    const lfoVol = ctx.createGain();
+    lfoVol.gain.value = 6;
+    lfo.connect(lfoVol).connect(osc.frequency);
+
+    const vol = ctx.createGain();
+    vol.gain.setValueAtTime(0.0001, t0);
+    vol.gain.linearRampToValueAtTime(0.032, t0 + 0.3);
+    osc.connect(vol).connect(ctx.destination);
+    osc.start(t0); lfo.start(t0);
+
+    zunido = {
+      parar() {
+        const t = ctx.currentTime;
+        vol.gain.cancelScheduledValues(t);
+        vol.gain.setValueAtTime(Math.max(vol.gain.value, 0.0001), t);
+        vol.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+        osc.stop(t + 0.32); lfo.stop(t + 0.32);
+      },
+    };
+  }
+
+  // Duas notas curtas, subindo: ele achou o que procurava e vai falar.
+  function bip() {
+    tom(660, 0.06, 'square', 0.042);
+    setTimeout(() => tom(880, 0.05, 'square', 0.036), 72);
+  }
+
+  /* O avatar mora em outro arquivo e não tem contexto de áudio próprio — nem
+     deve ter, dois contextos seria desperdício e dessincronia. Ele chama por
+     aqui, com ?., então funciona igual se este arquivo não tiver carregado. */
+  window.SOM = { estalo, estaloGrave, chegada, zumbido, bip };
 
   /* ======================================================================
      4. MOTOR DE DIGITAÇÃO
@@ -289,6 +444,10 @@
   function animar(estado, aoTerminar, frames) {
     const { raiz, nos, marcos, total } = estado;
     const porFrame = total / (frames || framesPara(total));
+
+    // Quem está emitindo decide o timbre: o terminal tecla, o VITR0-L4 fala.
+    const som = raiz.classList && raiz.classList.contains('agente')
+      ? estaloGrave : estalo;
     let i = 0, pos = 0, acumulado = 0, ponteiro = 0, vivo = true;
 
     raiz.classList.add('digitando');
@@ -334,7 +493,7 @@
       }
 
       revelarAte(i);
-      estalo();
+      som();
       seguir(raiz);
       if (i >= nos.length) { completar(); return; }
       requestAnimationFrame(passo);
@@ -371,12 +530,166 @@
     seguir(linha);
   }
 
-  function imprimirErro(cmd) {
+  /* ======================================================================
+     5b. O AGENTE — VITR0-L4
+
+     Qualquer coisa que não seja um comando conhecido chega aqui. Antes virava
+     uma piada e acabava; agora vai para o proxy, e a piada só volta a existir
+     quando o agente não está no ar.
+
+     Só o ENDEREÇO mora aqui. A chave da API, a ficha, os limites de taxa e toda
+     a conferência ficam no Worker — esta página é estática e pública, e tudo
+     que ela baixa qualquer visitante consegue ler.
+     ====================================================================== */
+
+  /* Vazio = agente desligado, e esse é o estado certo por padrão. Quem clonar o
+     repositório e abrir o index.html vê o terminal se comportando exatamente
+     como antes, com as mensagens bem-humoradas. O site nunca depende do agente
+     para funcionar; ele só fica melhor quando o agente está lá.
+
+     Preenchido em 21/08/2026, depois do `wrangler deploy`. Para desligar o
+     agente e voltar ao terminal de antes, basta esvaziar esta string. */
+  const AGENTE = 'https://vitr0-l4.pedrovitral.workers.dev/perguntar';
+
+  /* Palavra do Pedro, fixa. Não passa pelo modelo: custa zero token, não deriva
+     e aparece mesmo com a API fora do ar. O prompt manda o VITR0-L4 NÃO se
+     apresentar justamente porque quem apresenta é esta linha. */
+  const APRESENTACAO =
+    '*brr* Prazer, me chamo VITR0-L4, códice curricular do Pedro Vitral: ' +
+    'respondo algumas coisas que me recordo sobre ele e meu propósito é sanar ' +
+    'suas dúvidas! Este terminal opera o currículo dele, help mostra os ' +
+    'comandos, e qualquer pergunta é mais trabalho para mim. *zunn*';
+
+  const SEM_REDE =
+    '*bzzt* Não consegui alcançar meus circuitos daqui. O currículo inteiro ' +
+    'continua aqui pelos comandos; digite help.';
+
+  const OCUPADO = '*whirr* Uma coisa de cada vez. Já estou procurando a anterior.';
+
+  /* O resumo da conversa vive aqui, em memória, e some ao recarregar. Vem
+     ASSINADO pelo Worker: se alguém editar, o Worker descarta e a conversa
+     recomeça. É o que impede o campo de virar caneta para escrever dentro do
+     prompt de sistema. */
+  let memoria = '', assinatura = '';
+  let apresentado = false, perguntando = false;
+
+  function escrever(texto, classe, aoTerminar, humor) {
     const p = document.createElement('p');
-    p.className = 'resposta erro';
-    p.textContent = ERROS[Math.floor(Math.random() * ERROS.length)](cmd);
+    p.className = 'resposta ' + classe;
+    /* textContent, sempre. É a camada 4 inteira em uma linha: nem uma resposta
+       forjada consegue injetar marcação nesta página. */
+    p.textContent = texto;
     saida.appendChild(p);
-    digitar(p);
+
+    const dura = Math.max(1600, framesPara(texto.length) * (1000 / 60));
+
+    /* falar() devolve quanto tempo o rosto precisa para se materializar e
+       abrir. O texto espera esse tanto, senão os dois disputam a atenção no
+       mesmo instante em cantos opostos da tela. Zero quando o rosto não vai
+       aparecer, e aí nada atrasa. */
+    const espera = window.VITR0?.falar(dura, humor) || 0;
+
+    /* preparar() esvazia AGORA, animar() só depois da espera. Chamar digitar()
+       atrasado deixaria o texto completo na tela durante a espera, para então
+       sumir e ser redigitado — o mesmo defeito que a abertura já teve. */
+    const estado = preparar(p);
+    const ir = () => animar(estado, aoTerminar);
+    if (espera) setTimeout(ir, espera); else ir();
+  }
+
+  /* O endereço sai da PÁGINA, nunca da resposta do modelo. O modelo redige o
+     assunto e o corpo; se ele escolhesse o destinatário, uma resposta forjada
+     mandaria o recrutador escrever para outra pessoa. */
+  function enderecoDoPedro() {
+    const a = fonte.querySelector('a[href^="mailto:"]');
+    return a ? a.getAttribute('href').slice(7) : '';
+  }
+
+  function oferecer(acoes) {
+    if (!Array.isArray(acoes) || !acoes.length) return;
+
+    const nav = document.createElement('nav');
+    nav.className = 'acoes';
+    nav.setAttribute('aria-label', 'Sugestões do VITR0-L4');
+
+    for (const acao of acoes) {
+      /* O Worker já filtrou por lista fechada; aqui só é desenhado o que este
+         cliente sabe desenhar. Tipo desconhecido some sem quebrar nada, o que
+         deixa o Worker poder ganhar tipos novos antes do cliente. */
+      if (acao.tipo !== 'email') continue;
+      const para = enderecoDoPedro();
+      if (!para) continue;
+
+      const botao = document.createElement('a');
+      botao.className = 'chip';
+      botao.textContent = 'escrever para o Pedro';
+      botao.href = 'mailto:' + para +
+        '?subject=' + encodeURIComponent(acao.assunto) +
+        '&body=' + encodeURIComponent(acao.corpo);
+      nav.appendChild(botao);
+    }
+
+    if (nav.children.length) { saida.appendChild(nav); seguir(nav); }
+  }
+
+  function consultar(texto) {
+    return fetch(AGENTE, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ pergunta: texto, memoria, sig: assinatura }),
+    // O Worker devolve texto pronto até quando recusa: 429 e 503 têm corpo.
+    }).then(r => r.json());
+  }
+
+  async function perguntarAoAgente(texto) {
+    if (perguntando) { escrever(OCUPADO, 'agente'); return; }
+    perguntando = true;
+
+    /* A chamada sai ANTES da apresentação. Assim a espera da rede corre por
+       baixo do texto que já está sendo digitado, em vez de depois dele — e na
+       primeira pergunta a apresentação sai de graça, dentro de um tempo que o
+       visitante ia esperar de qualquer jeito. */
+    const resposta = consultar(texto).catch(() => null);
+
+    if (!apresentado) {
+      apresentado = true;
+      await new Promise(pronto => escrever(APRESENTACAO, 'agente', pronto));
+    }
+
+    // Agora sim ele procura: boca fechada, olhar para cima, chiado.
+    window.VITR0?.pensar();
+
+    const d = await resposta;
+    perguntando = false;
+
+    if (!d || typeof d.resposta !== 'string') {
+      escrever(SEM_REDE, 'agente erro', null, 'fora');
+      return;
+    }
+
+    if (d.memoria && d.sig) { memoria = d.memoria; assinatura = d.sig; }
+
+    escrever(
+      d.resposta,
+      d.fonte === 'enlatada' ? 'agente erro' : 'agente',
+      () => {
+        oferecer(d.acoes);
+        /* Depois de uma conversa, o auto-play espera bem mais que o normal.
+           Quem acabou de perguntar alguma coisa provavelmente vai perguntar
+           outra, e o terminal digitando sozinho no meio disso atropela. */
+        agendarRetomada(ESPERA_POS_AGENTE);
+      },
+      d.estado
+    );
+  }
+
+  function imprimirErro(cmd) {
+    // Sem Worker no ar, o terminal continua sendo o que sempre foi.
+    if (!AGENTE) {
+      escrever(ERROS[Math.floor(Math.random() * ERROS.length)](cmd), 'erro');
+      return;
+    }
+    perguntarAoAgente(cmd);
   }
 
   function imprimir(def, aoTerminar) {
@@ -393,6 +706,12 @@
     env.className = 'resposta';
     env.appendChild(clone);
     saida.appendChild(env);
+
+    /* Comando impresso quer dizer que a conversa acabou e a tela voltou a ser
+       do currículo. O rosto desce para o lado do console — e desce agora, no
+       instante em que a atenção já está mudando de lugar, e não no meio da
+       leitura de um bloco. */
+    window.VITR0?.recolher();
 
     digitar(env, aoTerminar);
   }
@@ -432,6 +751,10 @@
   const CHROME_FRAMES    = 75;    // ~0,8s montando os botões F1/F2/F3
   const ESPERA_CONVITE   = 2500;  // pausa antes de começar a se tocar sozinho
   const ESPERA_ENTRE     = 8000;  // entre um comando e o próximo
+  /* Depois de uma resposta do agente. Muito maior que a retomada normal: a
+     conversa é o momento em que o visitante está mais engajado, e é o pior
+     momento possível para o terminal tomar o teclado de volta. */
+  const ESPERA_POS_AGENTE = 22000;
   const ESPERA_RETOMADA  = 8000; // silêncio do usuário antes de retomar sozinho
 
   /* Duas variáveis, e a distinção importa:
@@ -486,18 +809,21 @@
     return SEQUENCIA.find(c => !feitos.has(c)) || null;
   }
 
-  function agendarRetomada() {
+  function agendarRetomada(espera) {
+    const ms = espera || ESPERA_RETOMADA;
     clearTimeout(timer);
     if (!autoType) { alvoContagem = 0; return; }
-    alvoContagem = performance.now() + ESPERA_RETOMADA;
+    alvoContagem = performance.now() + ms;
     agendar(() => {
       if (!autoType) return;
       // Ainda tem texto no campo: a pessoa está no meio de um comando.
       if (input.value.trim()) { agendarRetomada(); return; }
+      // O agente ainda está procurando: a vez continua sendo dele.
+      if (perguntando) { agendarRetomada(); return; }
       pausado = false;
       form.classList.add('aguardando');
       tocar();
-    }, ESPERA_RETOMADA);
+    }, ms);
   }
 
   function interromper() {
@@ -595,7 +921,11 @@
   }
 
   function tocar() {
-    if (!autoType || pausado || emitindo) return;
+    /* `perguntando` é a adição que faltava. Sem ela, o auto-play digitava um
+       comando no meio da espera do agente: o visitante fazia uma pergunta, o
+       VITR0-L4 ficava procurando, e do nada um chip aparecia sozinho na tela.
+       Quebra a ilusão de que alguém está pensando ali. */
+    if (!autoType || pausado || emitindo || perguntando) return;
 
     const cmd = proximoPendente();
     if (!cmd) return;                       // sequência completa, nada a fazer
@@ -705,6 +1035,7 @@
      ====================================================================== */
   form.hidden = false;
   form.classList.add('aguardando');
+  window.VITR0?.animar(textAnim);
 
   function enviar() {
     const cmd = input.value;
@@ -817,6 +1148,7 @@
     gravarPref('textanim', textAnim ? '1' : '0');
     // Desligar completa na hora o que estiver saindo, mas NÃO para o auto-play:
     // os dois eixos são independentes.
+    window.VITR0?.animar(textAnim);
     if (!textAnim) completarTudo();
   });
 
