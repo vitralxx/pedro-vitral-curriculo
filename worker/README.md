@@ -30,7 +30,7 @@ O ponto que organiza o desenho inteiro: **o modelo nunca tem a última palavra.*
 | `ficha.json` | os fatos que vão ao ar. **Gerado.** Não editar à mão. |
 | `testar.mjs` | 132 testes, sem gastar token. |
 | `wrangler.toml` | configuração. Nenhum segredo aqui. |
-| `../exportar_ficha.py` | gera `ficha.json` a partir de `planejamento/fatos.json`. |
+| `../scripts/exportar_ficha.py` | gera `ficha.json` a partir de `planejamento/fatos.json`. |
 
 ---
 
@@ -42,7 +42,7 @@ Gemini no [AI Studio](https://aistudio.google.com/apikey).
 **1. Gere a ficha** (a partir da raiz do projeto, não daqui):
 
 ```bash
-python exportar_ficha.py
+python scripts/exportar_ficha.py
 ```
 
 **2. Crie o espaço do KV** e cole o id que ele imprimir em `wrangler.toml`:
@@ -84,7 +84,7 @@ curl https://vitr0-l4.SEU-SUBDOMINIO.workers.dev/saude
 **Mudou `planejamento/fatos.json`?** A ficha que está no ar não muda sozinha:
 
 ```bash
-python exportar_ficha.py && cd worker && npx wrangler deploy
+python scripts/exportar_ficha.py && cd worker && npx wrangler deploy
 ```
 
 **Antes de qualquer deploy**, rode a bateria:
