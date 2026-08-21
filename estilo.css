@@ -950,7 +950,7 @@ html.js #fonte { display: none; }
 #chips {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--e1);
+  gap: .2rem;
   margin-top: var(--e2);
 }
 
@@ -958,9 +958,12 @@ html.js #fonte { display: none; }
    anterior eles pediam 809px numa coluna de 726 e dois desciam para a segunda
    linha. Fonte menor e vão mais curto devolvem folga de sobra.
 
-   .8rem e não .85rem por causa da margem: em .85 sobravam 36px de 726, e 5% de
-   folga some se a monoespaçada cair num substituto mais largo em outra máquina.
-   Em .8 sobram uns 80px, que aguentam a variação de fonte sem quebrar a linha.
+   O tamanho é escolhido pela MARGEM, não pela estética: são nove chips numa
+   coluna de 726px, e o que decide se o último desce para a segunda linha é
+   quanto sobra. Em .85rem sobravam 36px, em .78rem sobravam 41, e 5% de folga
+   some se a monoespaçada cair num substituto mais largo na máquina de quem
+   olha. Em .75rem sobram uns 60px, perto de 9%, que aguentam a variação de
+   fonte entre sistemas sem quebrar a fila.
 
    O celular tem regra própria mais abaixo: lá eles quebram de qualquer jeito, e
    apertar o alvo de toque para resolver um problema de desktop seria trocar
@@ -968,10 +971,15 @@ html.js #fonte { display: none; }
 .chip {
   border: 1px solid var(--verde-baixo);
   color: var(--verde-medio);
-  font-size: .8rem;
-  padding: var(--e1) var(--e2);
+  font-size: .75rem;
+  padding: var(--e1) .4rem;
   text-decoration: none;
   white-space: nowrap;
+  /* O clear é um <button> e os outros são <a>. Sem estas três linhas o botão
+     viria com a fonte e o fundo do sistema, e destoaria no meio da fila. */
+  font-family: inherit;
+  background: none;
+  cursor: pointer;
   transition: color .12s, border-color .12s, box-shadow .12s;
 }
 .chip::before { content: "$ " / ""; color: var(--verde-baixo); }

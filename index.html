@@ -131,6 +131,12 @@
       <a class="chip" href="#contato"  data-cmd="contact">contact</a>
       <a class="chip" href="#interesses" data-cmd="hobbies">hobbies</a>
       <a class="chip" href="#ajuda"    data-cmd="help">help</a>
+      <!-- clear é o único que não aponta para uma seção: ele não mostra nada,
+           apaga. Sem destino, um <a> não teria href, e <a> sem href sai da
+           ordem de tabulação e deixa de responder ao Enter. Botão resolve os
+           dois de graça, e sem JS ele simplesmente não faz nada — que é o certo
+           para uma ação que só existe por causa do JS. -->
+      <button class="chip" type="button" data-cmd="clear">clear</button>
     </nav>
     </div><!-- /.console -->
   </section>
