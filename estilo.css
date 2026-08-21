@@ -950,13 +950,25 @@ html.js #fonte { display: none; }
 #chips {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--e2);
+  gap: var(--e1);
   margin-top: var(--e2);
 }
 
+/* Os oito chips cabem numa linha só, e isso é medido, não chutado: no tamanho
+   anterior eles pediam 809px numa coluna de 726 e dois desciam para a segunda
+   linha. Fonte menor e vão mais curto devolvem folga de sobra.
+
+   .8rem e não .85rem por causa da margem: em .85 sobravam 36px de 726, e 5% de
+   folga some se a monoespaçada cair num substituto mais largo em outra máquina.
+   Em .8 sobram uns 80px, que aguentam a variação de fonte sem quebrar a linha.
+
+   O celular tem regra própria mais abaixo: lá eles quebram de qualquer jeito, e
+   apertar o alvo de toque para resolver um problema de desktop seria trocar
+   conforto de quem usa por alinhamento de quem olha. */
 .chip {
   border: 1px solid var(--verde-baixo);
   color: var(--verde-medio);
+  font-size: .8rem;
   padding: var(--e1) var(--e2);
   text-decoration: none;
   white-space: nowrap;
@@ -1182,6 +1194,11 @@ html[data-modo="moderno"] h3 { letter-spacing: .04em; }
 
   .arvore :is(li, .projeto) { padding-left: 2.5ch; }
   .arvore ul { padding-left: .5ch; }
+
+  /* No celular os chips quebram em várias linhas de qualquer jeito, então o
+     tamanho volta a ser o do dedo, não o da régua. */
+  .chip { font-size: 1rem; padding: var(--e2); }
+  #chips { gap: var(--e2); }
 }
 
 /* Tela larga: existe margem lateral sobrando, o chrome sai do fluxo do texto
@@ -1193,7 +1210,12 @@ html[data-modo="moderno"] h3 { letter-spacing: .04em; }
     right: var(--e4);
     bottom: var(--e4);
     flex-direction: column;
-    align-items: stretch;
+    /* flex-end, e não stretch. Com stretch cada item ganha a largura do mais
+       largo, e o mais largo é o grupo do som por causa do slider — os dois
+       botões esticavam para acompanhar uma barra que não é da conta deles.
+       Assim cada caixa tem a largura do próprio conteúdo, alinhadas à direita
+       porque é da borda direita que a coluna se aproxima. */
+    align-items: flex-end;
     gap: var(--e2);
     border-top: 0;
     background: none;
@@ -1203,6 +1225,23 @@ html[data-modo="moderno"] h3 { letter-spacing: .04em; }
     justify-content: flex-start;
     border: 1px solid var(--verde-baixo);
     background: var(--fundo);
+  }
+
+  /* Na coluna o som vira duas linhas: o botão, e a barra logo abaixo dele, da
+     mesma largura. Lado a lado eles formariam uma caixa larga e torta no meio
+     de duas estreitas. */
+  .chrome-som {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--e1);
+    border-left: 0;
+  }
+  .chrome-som .volume {
+    margin-inline: 0;
+    height: 30px;
+    background: var(--fundo);
+    border: 1px solid var(--verde-baixo);
+    padding-inline: var(--e2);
   }
   .chrome .btn-pdf { border-color: var(--verde-alto); }
   body { padding-bottom: var(--e5); }
