@@ -1050,14 +1050,14 @@ html.js #fonte { display: none; }
 .volume::-webkit-slider-thumb {
   appearance: none;
   -webkit-appearance: none;
-  width: 12px; height: 20px;
-  margin-top: -9px;          /* centra o bloco no traço de 2px */
+  width: 8px; height: 14px;
+  margin-top: -6px;          /* centra o bloco no traço de 2px */
   background: var(--verde-medio);
   border: 0;
   box-shadow: var(--glow-fraco);
 }
 .volume::-moz-range-thumb {
-  width: 12px; height: 20px;
+  width: 8px; height: 14px;
   border-radius: 0;
   background: var(--verde-medio);
   border: 0;
@@ -1210,12 +1210,19 @@ html[data-modo="moderno"] h3 { letter-spacing: .04em; }
     right: var(--e4);
     bottom: var(--e4);
     flex-direction: column;
-    /* flex-end, e não stretch. Com stretch cada item ganha a largura do mais
-       largo, e o mais largo é o grupo do som por causa do slider — os dois
-       botões esticavam para acompanhar uma barra que não é da conta deles.
-       Assim cada caixa tem a largura do próprio conteúdo, alinhadas à direita
-       porque é da borda direita que a coluna se aproxima. */
-    align-items: flex-end;
+    align-items: stretch;
+    /* Largura FIXA, e é ela que resolve o problema.
+
+       Com stretch e largura automática, cada caixa ganha a largura do item mais
+       largo — e o mais largo virou o grupo do som quando ganhou o slider, então
+       os botões esticavam atrás de uma barra que não é da conta deles. Trocar
+       para flex-end resolvia o esticão mas trazia outro: três caixas de
+       larguras diferentes, umas 151, outras 160, o que lê como desalinho.
+
+       Fixando a largura, as quatro ficam idênticas e o slider preenche o que
+       sobra em vez de ditar o tamanho. 12rem cabe "BAIXAR PDF" e "MODO: RETRO"
+       com folga. */
+    width: 12rem;
     gap: var(--e2);
     border-top: 0;
     background: none;
@@ -1236,9 +1243,17 @@ html[data-modo="moderno"] h3 { letter-spacing: .04em; }
     gap: var(--e1);
     border-left: 0;
   }
+  /* As duas linhas seguintes desfazem regras escritas para a barra em LINHA.
+     Ao virar coluna, os eixos trocam de significado: `align-self: center` passa
+     a governar a LARGURA e `flex: 1 1 4rem` passa a governar a ALTURA. Sem
+     desfazê-las o slider saía com 147px de largura em vez de acompanhar os
+     botões, e com 64px de altura em vez dos 26 pedidos aqui. */
   .chrome-som .volume {
+    align-self: stretch;
+    flex: 0 0 auto;
     margin-inline: 0;
-    height: 30px;
+    min-width: 0;            /* não empurra a largura da coluna */
+    height: 26px;
     background: var(--fundo);
     border: 1px solid var(--verde-baixo);
     padding-inline: var(--e2);

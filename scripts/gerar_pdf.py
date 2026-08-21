@@ -278,6 +278,24 @@ def texto_do_li(li):
     return limpar(" ".join(p for p in partes if p))
 
 
+def li_com_sublista(li, junta=" "):
+    """Rótulo do <li> MAIS o conteúdo das sublistas dele.
+
+    Existe porque `texto_do_li` descarta sublistas de propósito, e em Interesses
+    é justamente na sublista que mora o conteúdo: o <li> de fora tem só
+    "Música:" e o de dentro tem a frase inteira. Usando só o de fora, o PDF
+    saía com os títulos e nada embaixo — a seção existia e não dizia nada.
+    """
+    rotulo = texto_do_li(li)
+    dentro = []
+    for sub in li.diretos("ul"):
+        dentro += [texto_do_li(x) for x in itens_de(sub)]
+    dentro = [d for d in dentro if d and not vazio(d)]
+    if not dentro:
+        return rotulo
+    return limpar(rotulo + junta + junta.join(dentro))
+
+
 def sem_filhos(li, excluir=()):
     """Texto do <li> descartando sublistas e os nós indicados."""
     partes = []
@@ -304,6 +322,10 @@ def rotulo_e_usos(li):
         usos = [u.strip() for u in texto_puro(span).split(",")]
         usos = [u for u in usos if u and not vazio(u)]
     return sem_filhos(li, excluir=(span,) if span else ()), usos
+
+
+# Como o currículo interativo se chama quando é citado de dentro do PDF.
+NOME_DESTE_SITE = "Currículo Retro"
 
 
 def cinza(txt):
@@ -417,6 +439,11 @@ def montar(raiz, alvo, st, largura):
                 # projeto ("jogos em Unity", "este currículo") passa direto.
                 usos = [u for u in usos
                         if u not in todos_projetos or u in no_pdf]
+                # No site "este currículo" é literal: você está olhando para
+                # ele. Num PDF que circula sozinho, solto de qualquer contexto,
+                # a expressão não aponta para nada — então ganha nome próprio.
+                usos = [NOME_DESTE_SITE if u == "este currículo" else u
+                        for u in usos]
                 itens.append(rotulo + (f" {cinza('(' + ', '.join(usos) + ')')}"
                                        if usos else ""))
             if itens:
@@ -429,7 +456,7 @@ def montar(raiz, alvo, st, largura):
 
     interesses = fonte.um(ident="interesses")
     if interesses:
-        linhas = [texto_do_li(li) for li in itens_de(interesses.um("ul"))]
+        linhas = [li_com_sublista(li) for li in itens_de(interesses.um("ul"))]
         linhas = [l for l in linhas if not vazio(l)]
         if linhas:
             esq += titulo("Interesses", st)
@@ -460,13 +487,22 @@ def montar(raiz, alvo, st, largura):
 
     if paragrafos or balas:
         dir_ += titulo("Perfil", st, primeiro=True)
-        for i, q in enumerate(paragrafos):
+        for q in paragrafos:
             txt = inline(q)
-            # A frase do HTML termina em ":" para apresentar a lista que vinha
-            # logo abaixo dela — lista que não entra no PDF. Sem isso, o
-            # parágrafo fica com dois-pontos apontando para o nada.
-            if i == len(paragrafos) - 1 and balas and txt.endswith(":"):
-                txt = txt[:-1] + "."
+            # Parágrafo que só APRESENTA uma lista não sobrevive sozinho. A
+            # frase "Desde que me recordo, eu estive:" existe para introduzir os
+            # três itens que vêm logo abaixo dela no site, e esses itens não
+            # entram no PDF. Sem a lista, ela fica com dois-pontos apontando
+            # para o nada, e quem lê vira a página procurando o que não veio.
+            #
+            # A regra é a forma, não o texto: termina em ":" e o que vinha
+            # depois ficou de fora. Assim ela continua valendo se a frase mudar.
+            #
+            # O teste é no texto SEM marcação. A frase está dentro de <strong>,
+            # então o que `inline` devolve termina em "</b>", nunca em ":" — foi
+            # exatamente assim que a primeira versão desta regra não pegou nada.
+            if texto_puro_de(txt).rstrip().endswith(":"):
+                continue
             dir_.append(Paragraph(txt, st["corpo"]))
         for li in balas:
             dir_.append(Paragraph(texto_do_li(li), st["item"], bulletText="•"))
