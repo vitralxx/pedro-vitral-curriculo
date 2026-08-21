@@ -779,6 +779,23 @@ html.js #fonte { display: none; }
 .novidade[hidden] { display: none; }
 .novidade:hover, .novidade:focus-visible { background: var(--verde-baixo); color: var(--fundo); }
 
+/* Chips esticados até a borda do campo.
+
+   Só a partir de 900px, e a condição importa: abaixo disso eles quebram em
+   várias linhas, e `flex-grow` numa linha com dois chips daria a cada um metade
+   da largura da tela. Encher a linha só faz sentido quando a linha é uma só.
+
+   `flex: 1 0 auto` — cresce, mas NÃO encolhe. Encolher com `white-space: nowrap`
+   não faz o texto caber, faz a caixa vazar por baixo do vizinho. Sem encolher,
+   o pior caso continua sendo a quebra de linha, que é feia mas é legível.
+   -------------------------------------------------------------------------- */
+@media (min-width: 900px) {
+  #chips .chip {
+    flex: 1 0 auto;
+    text-align: center;
+  }
+}
+
 /* --------------------------------------------------------------------------
    9c. VITR0-L4
    Mora na goteira ESQUERDA, simétrico à barra de botões que fica na direita.
