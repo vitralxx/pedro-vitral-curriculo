@@ -28,7 +28,8 @@ O ponto que organiza o desenho inteiro: **o modelo nunca tem a última palavra.*
 | `src/index.js` | o proxy. Camadas 2 e 3, limite de taxa, CORS. |
 | `src/prompt.js` | o contrato do agente. É redação, não código — é o arquivo que o Pedro revisa. |
 | `ficha.json` | os fatos que vão ao ar. **Gerado.** Não editar à mão. |
-| `testar.mjs` | 132 testes, sem gastar token. |
+| `testar.mjs` | 145 testes, sem gastar token. |
+| `ler-perguntas.mjs` | lê a fila de perguntas dos visitantes. |
 | `wrangler.toml` | configuração. Nenhum segredo aqui. |
 | `../scripts/exportar_ficha.py` | gera `ficha.json` a partir de `planejamento/fatos.json`. |
 
@@ -102,8 +103,48 @@ cd worker && npx wrangler tail
 O `tail` é como você afina os filtros. Cada reprovação da camada 3 aparece ali
 com o motivo e o começo da resposta que o modelo tinha dado. Se aparecer muita
 reprovação boa sendo descartada, o filtro está apertado demais; se aparecer
-pouca coisa, está frouxo. Nenhum IP e nenhuma pergunta são gravados em lugar
-nenhum — o `tail` é ao vivo e não fica.
+pouca coisa, está frouxo. Nenhum IP é gravado em lugar nenhum, e o `tail` é ao
+vivo: não fica.
+
+**Para ver o que os visitantes perguntaram:**
+
+```bash
+cd worker && node ler-perguntas.mjs
+```
+
+---
+
+## A fila de perguntas
+
+O valor dela não é bisbilhotar, é achar os buracos da ficha. Toda pergunta que
+aparece com motivo `vazio` é um fato que falta, e cada fato acrescentado é uma
+resposta a mais que o agente dá sozinho na próxima vez. Por isso o relatório
+começa por elas, e termina lembrando o comando de atualizar a ficha.
+
+O que fica gravado, e só isso:
+
+| campo | o quê |
+|---|---|
+| `q` | o texto da pergunta, cortado em 200 caracteres |
+| `m` | o motivo: `ok`, `vazio`, `injecao`, `dinheiro`, `proibido`, ... |
+| dia | só a data, na chave. Nunca a hora |
+
+**Não há IP, não há sessão, não há como saber se duas perguntas vieram da mesma
+pessoa.** A chave carrega um número aleatório, não um contador, então nem a
+ordem de chegada sobrevive.
+
+E o texto é limpo ANTES de encostar no disco: e-mail, telefone e documento viram
+`[email]`, `[telefone]` e `[documento]`. O campo é livre, e campo livre é onde
+alguém escreve "sou o João da empresa X, meu telefone é..." sem ninguém ter
+pedido. Apagar na entrada protege melhor do que um aviso na tela protegeria — um
+aviso transfere a responsabilidade para o visitante, apagar resolve o problema.
+
+Pedido recusado pelo limite de taxa **não** é anotado. Se fosse, bastaria
+martelar o endpoint para queimar a cota de escrita do KV de graça.
+
+Cada pergunta some sozinha depois de `DIAS_PERGUNTAS` (180 por padrão). Tirar a
+ligação `PERGUNTAS` do `wrangler.toml` desliga a coleta inteira sem quebrar
+nada — há um teste que garante isso.
 
 ---
 

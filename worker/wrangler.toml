@@ -24,7 +24,28 @@ compatibility_date = "2026-08-20"
 binding = "ESTADO"
 id = "6d381ca031134d3ebd50d9bfd083c3d4"
 
+# -----------------------------------------------------------------------------
+# A fila de perguntas.
+#
+#     npx wrangler kv namespace create PERGUNTAS
+#
+# Guarda o texto da pergunta, o motivo e o DIA. Sem IP, sem sessão, sem hora, e
+# sem nada que ligue duas perguntas à mesma pessoa. E-mail, telefone e documento
+# são apagados no Worker antes de qualquer coisa ser gravada: o campo é livre, e
+# campo livre é onde alguém escreve o próprio contato sem ninguém ter pedido.
+#
+# Ler com:  cd worker && node ler-perguntas.mjs
+#
+# Tirar esta ligação desliga a coleta inteira, sem quebrar nada.
+# -----------------------------------------------------------------------------
+[[kv_namespaces]]
+binding = "PERGUNTAS"
+id = "e1941ffa5b2b468b8e64f8c00dd0cfa0"
+
 [vars]
+
+# Quanto tempo cada pergunta fica guardada antes de sumir sozinha.
+DIAS_PERGUNTAS = "180"
 
 # O modelo fica aqui, e não no código, porque nome de modelo é a coisa que mais
 # muda nesse ecossistema. Trocar aqui e redeployar é mais barato que editar JS.

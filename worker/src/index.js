@@ -592,6 +592,69 @@ function novaMemoria(anterior, pergunta, resposta) {
 }
 
 /* --------------------------------------------------------------------------
+   8b. A fila de perguntas
+
+   O Pedro queria saber o que os recrutadores perguntam. O valor não está em
+   bisbilhotar: está em achar os buracos da ficha. Toda pergunta que volta com
+   `sabia: false` é um fato que falta, e cada fato acrescentado é uma resposta a
+   mais que o agente dá sozinho na próxima vez.
+
+   O que é gravado, e só isso: o texto da pergunta, o motivo, e o DIA. Sem IP,
+   sem sessão, sem hora, sem nada que ligue duas perguntas à mesma pessoa. A
+   chave carrega um número aleatório, não um contador, então nem a ordem de
+   chegada sobrevive.
+
+   E o texto passa por uma limpeza antes de encostar no disco. O campo é livre,
+   e campo livre é onde alguém escreve "sou o João da empresa X" sem ninguém ter
+   pedido. Apagar e-mail, telefone e documento na entrada protege melhor do que
+   um aviso na tela protegeria: um aviso transfere a responsabilidade para o
+   visitante, apagar resolve o problema.
+
+   Se a ligação PERGUNTAS não existir, nada disso acontece e o Worker segue
+   normalmente. Dá para deployar sem criar o espaço e ligar depois.
+   -------------------------------------------------------------------------- */
+const MAX_ANOTACAO = 200;
+
+const IDENTIFICAVEL = [
+  // ordem importa: o CPF tem 11 dígitos e cairia no padrão de telefone
+  [/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/g, '[documento]'],
+  [/[\w.+-]+@[\w-]+\.[\w.-]+/g, '[email]'],
+  [/(\+\d{2}\s*)?\(?\d{2}\)?[\s.-]*9?\d{4}[\s.-]?\d{4}\b/g, '[telefone]'],
+];
+
+function despersonalizar(texto) {
+  let limpo = texto;
+  for (const [padrao, troca] of IDENTIFICAVEL) limpo = limpo.replace(padrao, troca);
+  return limpo.slice(0, MAX_ANOTACAO);
+}
+
+function anotar(env, ctx, pergunta, motivo) {
+  if (!env.PERGUNTAS || typeof pergunta !== 'string') return;
+
+  const dia = new Date().toISOString().slice(0, 10);
+  const sorte = crypto.randomUUID().slice(0, 8);
+  const valor = JSON.stringify({ q: despersonalizar(pergunta.trim()), m: motivo });
+
+  /* waitUntil: a gravação não pode atrasar a resposta do visitante. Ele já
+     esperou a rede e o modelo; esperar o KV também seria cobrar dele por uma
+     conveniência que é do Pedro. E falha de gravação não pode derrubar a
+     resposta, daí o catch vazio. */
+  const gravando = env.PERGUNTAS
+    .put(`p:${dia}:${sorte}`, valor, {
+      expirationTtl: Number(env.DIAS_PERGUNTAS || 180) * 86400,
+      /* O mesmo conteúdo vai nos METADADOS, e não é redundância à toa: o
+         `kv key list` devolve os metadados junto dos nomes, numa chamada só.
+         Sem isso, ler a fila seria um `kv key get` por pergunta, e cada
+         invocação do wrangler leva alguns segundos — trinta perguntas viravam
+         um minuto de espera para uma leitura que devia ser instantânea. */
+      metadata: { q: despersonalizar(pergunta.trim()), m: motivo },
+    })
+    .catch(() => {});
+
+  if (ctx && ctx.waitUntil) ctx.waitUntil(gravando);
+}
+
+/* --------------------------------------------------------------------------
    9. CORS e resposta
 
    A lista de origens é fechada. Não impede ninguém de chamar o endpoint por
@@ -651,7 +714,7 @@ function enlatada(env, request, motivo, status = 200, extra = {}) {
    10. O handler
    -------------------------------------------------------------------------- */
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
     if (request.method === 'OPTIONS') {
@@ -707,7 +770,11 @@ export default {
        para tentar à vontade, e o limite de taxa deixaria de limitar. */
     await gravarLimites(env, limites.chaves, limites.contagens);
 
-    if (exame.erro) return enlatada(env, request, exame.erro, 400);
+    if (exame.erro) {
+      // ataque barrado também é informação: é assim que os filtros se afinam
+      anotar(env, ctx, entrada.pergunta, exame.erro);
+      return enlatada(env, request, exame.erro, 400);
+    }
 
     /* Memória só entra se a assinatura conferir. Sem assinatura válida ela é
        descartada em silêncio: a conversa recomeça, que é bem menos grave do que
@@ -775,9 +842,14 @@ export default {
     }
 
     if (conferida.erro) {
+      anotar(env, ctx, exame.pergunta, conferida.erro);
       return enlatada(env, request, conferida.erro,
                       conferida.erro === 'api' ? 503 : 200);
     }
+
+    /* 'vazio' é a anotação que mais vale: o agente procurou e não achou, então
+       ali falta um fato na ficha. */
+    anotar(env, ctx, exame.pergunta, conferida.sabia ? 'ok' : 'vazio');
 
     const proxima = novaMemoria(memoria, exame.pergunta, conferida.resposta);
 
