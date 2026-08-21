@@ -75,8 +75,16 @@
          por fora. Sete pixels de erro é o suficiente para o rosto encostar no
          texto. Medido, o número está sempre certo. */
       raiz.setProperty('--coluna-esq', caixa.left + 'px');
+
+      /* E a altura da moldura de baixo. Era um token fixo de 3,3rem, o que já
+         era um chute: no celular a barra quebra em duas linhas por causa do
+         controle de volume, e o console sticky ficaria escondido atrás dela. */
+      if (chromeEl) {
+        raiz.setProperty('--altura-chrome', chromeEl.offsetHeight + 'px');
+      }
     };
     new ResizeObserver(medir).observe(consoleEl);
+    if (chromeEl) new ResizeObserver(medir).observe(chromeEl);
     addEventListener('resize', medir);
     medir();
   }
@@ -180,7 +188,7 @@
      O navegador bloqueia áudio antes do primeiro gesto do usuário, então o
      contexto só nasce no primeiro clique ou tecla.
      ====================================================================== */
-  let ctx = null, ruido = null, ruidoGrave = null;
+  let ctx = null, ruido = null, ruidoGrave = null, mestre = null;
   let ultimoClique = 0, ultimoGrave = 0;
 
   function ligarAudio() {
@@ -188,6 +196,14 @@
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
     ctx = new AC();
+
+    /* Tudo passa por um ganho só. Sem ele, mudar o volume exigiria alcançar
+       cada som já tocando — inclusive o zumbido, que é contínuo. Com ele, o
+       slider mexe num número e o resto obedece, incluindo o que já está no ar. */
+    mestre = ctx.createGain();
+    mestre.gain.value = volumeAtual();
+    mestre.connect(ctx.destination);
+
     const dur = 0.02;
     ruido = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * dur), ctx.sampleRate);
     const d = ruido.getChannelData(0);
@@ -209,6 +225,19 @@
 
   const somLigado = () => document.documentElement.dataset.som === 'on' && ctx;
 
+  /* 0 a 1, lido do atributo que o ui.js escreve. O teto de 0,9 evita que o
+     slider no máximo somado aos ganhos de cada som estoure e distorça. */
+  function volumeAtual() {
+    const bruto = Number(document.documentElement.dataset.volume);
+    return (Number.isFinite(bruto) ? Math.min(100, Math.max(0, bruto)) : 70) / 100 * 0.9;
+  }
+
+  new MutationObserver(() => {
+    if (mestre) mestre.gain.value = volumeAtual();
+  }).observe(document.documentElement, {
+    attributes: true, attributeFilter: ['data-volume']
+  });
+
   /* Um estalo é ruído por um passa-banda. Só três coisas separam a tecla da
      voz: o buffer, a faixa de frequência e o intervalo mínimo entre dois. */
   function bater(buffer, freq, largura, volume) {
@@ -218,7 +247,7 @@
     filtro.frequency.value = freq;
     filtro.Q.value = largura;
     const vol = ctx.createGain(); vol.gain.value = volume;
-    src.connect(filtro).connect(vol).connect(ctx.destination);
+    src.connect(filtro).connect(vol).connect(mestre);
     src.start();
   }
 
@@ -281,7 +310,7 @@
     vol.gain.setValueAtTime(0.0001, t0);
     vol.gain.linearRampToValueAtTime(volume, t0 + 0.012);
     vol.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-    osc.connect(vol).connect(ctx.destination);
+    osc.connect(vol).connect(mestre);
     osc.start(t0);
     osc.stop(t0 + dur + 0.03);
   }
@@ -320,7 +349,7 @@
     const vol = ctx.createGain();
     vol.gain.setValueAtTime(0.0001, t0);
     vol.gain.linearRampToValueAtTime(0.032, t0 + 0.3);
-    osc.connect(vol).connect(ctx.destination);
+    osc.connect(vol).connect(mestre);
     osc.start(t0); lfo.start(t0);
 
     zunido = {

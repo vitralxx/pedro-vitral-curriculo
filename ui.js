@@ -8,6 +8,7 @@
   const raiz     = document.documentElement;
   const btnModo  = document.getElementById('btn-modo');
   const btnSom   = document.getElementById('btn-som');
+  const barraVol = document.getElementById('volume');
   const linkPdf  = document.querySelector('.btn-pdf');
 
   /* --------------------------------------------------------------------
@@ -43,16 +44,33 @@
   }
 
   /* --------------------------------------------------------------------
-     SOM: off (padrão, e é padrão de propósito — som sem pedir licença faz
-     o recrutador fechar a aba). O sintetizador entra no passo 3; aqui só
-     guardamos o estado, que é o que o terminal vai consultar.
+     SOM
+
+     Nasce LIGADO. O navegador não deixa nenhum site tocar nada antes de um
+     gesto do visitante, então "ligado por padrão" não quer dizer que a página
+     faz barulho ao abrir: quer dizer que o primeiro clique já vem com som, em
+     vez de exigir que alguém descubra o F3 primeiro. Quem não quiser desliga
+     ali, e a escolha fica guardada.
+
+     O volume é separado do liga-desliga porque são perguntas diferentes.
+     "Quero som?" é sim ou não; "quanto?" depende de onde a pessoa está. Um
+     controle só obrigaria a desligar quando o caso era baixar.
      -------------------------------------------------------------------- */
-  let som = ler('som', 'off');
+  let som = ler('som', 'on');
+  let volume = Math.min(100, Math.max(0, parseInt(ler('volume', '70'), 10) || 0));
 
   function aplicarSom() {
     btnSom.innerHTML = '<span class="tecla">F3</span> SOM: ' + som.toUpperCase();
     btnSom.setAttribute('aria-pressed', String(som === 'on'));
     raiz.dataset.som = som;   // o terminal.js lê daqui
+    barraVol.disabled = som === 'off';
+  }
+
+  function aplicarVolume() {
+    barraVol.value = String(volume);
+    barraVol.setAttribute('aria-valuetext', volume + ' por cento');
+    // O terminal.js observa este atributo e ajusta o ganho mestre.
+    raiz.dataset.volume = String(volume);
   }
 
   function alternarSom() {
@@ -65,13 +83,25 @@
      Revelar. Os botões nascem hidden no HTML: sem JS eles não fariam nada,
      e botão que não faz nada é pior que botão ausente.
      -------------------------------------------------------------------- */
-  btnModo.hidden = false;
-  btnSom.hidden  = false;
+  btnModo.hidden  = false;
+  btnSom.hidden   = false;
+  barraVol.hidden = false;
   aplicarModo();
+  aplicarVolume();
   aplicarSom();
 
   btnModo.addEventListener('click', alternarModo);
   btnSom .addEventListener('click', alternarSom);
+
+  /* `input` e não `change`: no celular o dedo arrasta e a pessoa quer ouvir o
+     resultado enquanto arrasta, não depois de soltar. */
+  barraVol.addEventListener('input', () => {
+    volume = Number(barraVol.value);
+    aplicarVolume();
+  });
+  // Gravar só ao soltar: `input` dispara a cada pixel do arrasto, e isso seriam
+  // dezenas de escritas no localStorage para uma decisão só.
+  barraVol.addEventListener('change', () => gravar('volume', String(volume)));
 
   /* --------------------------------------------------------------------
      Teclas de função. preventDefault porque F1 abre a ajuda do navegador.

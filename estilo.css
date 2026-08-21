@@ -987,8 +987,74 @@ html.js #fonte { display: none; }
   border-top: 1px solid var(--verde-baixo);
   background: var(--fundo);
 }
-.chrome .btn { flex: 1 1 0; justify-content: center; border: 0; }
-.chrome .btn + .btn { border-left: 1px solid var(--verde-baixo); }
+.chrome { flex-wrap: wrap; }
+.chrome > * { flex: 1 1 0; }
+.chrome .btn { justify-content: center; border: 0; }
+.chrome > * + * { border-left: 1px solid var(--verde-baixo); }
+
+/* --------------------------------------------------------------------------
+   Liga-desliga e volume, juntos
+
+   São o mesmo controle visto de dois jeitos: um responde "quero som?", o outro
+   responde "quanto?". Um controle só obrigaria a desligar quando o caso era
+   baixar, então são dois — mas na mesma célula, porque quem procura um procura
+   o outro.
+   -------------------------------------------------------------------------- */
+.chrome-som {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;              /* deixa o botão encolher em vez de estourar */
+}
+.chrome-som .btn { flex: 0 1 auto; min-width: 0; }
+
+.volume {
+  flex: 1 1 4rem;
+  min-width: 3rem;
+  align-self: center;
+  margin-inline: var(--e2);
+  /* A área tocável precisa dos 44px que um dedo pede, mas o traço desenhado é
+     fino. Então o elemento é alto e o desenho é o que se vê: padding vertical
+     grande, fundo transparente. */
+  height: 44px;
+  background: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+.volume:disabled { opacity: .35; cursor: default; }
+
+/* Trilho e polegar precisam ser escritos duas vezes: os prefixos de WebKit e
+   de Gecko não aceitam ser agrupados na mesma regra — se um navegador não
+   entende um seletor da lista, ele descarta a regra inteira. */
+.volume::-webkit-slider-runnable-track {
+  height: 2px;
+  background: var(--verde-baixo);
+}
+.volume::-moz-range-track {
+  height: 2px;
+  background: var(--verde-baixo);
+}
+
+.volume::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 12px; height: 20px;
+  margin-top: -9px;          /* centra o bloco no traço de 2px */
+  background: var(--verde-medio);
+  border: 0;
+  box-shadow: var(--glow-fraco);
+}
+.volume::-moz-range-thumb {
+  width: 12px; height: 20px;
+  border-radius: 0;
+  background: var(--verde-medio);
+  border: 0;
+  box-shadow: var(--glow-fraco);
+}
+
+.volume:focus-visible { outline: 2px solid var(--verde-alto); outline-offset: 2px; }
+.volume:hover::-webkit-slider-thumb { background: var(--verde-alto); }
+.volume:hover::-moz-range-thumb     { background: var(--verde-alto); }
 
 .btn {
   display: flex;
@@ -1100,6 +1166,19 @@ html[data-modo="moderno"] h3 { letter-spacing: .04em; }
 
   .chrome .btn { padding: var(--e3) var(--e1); font-size: .8rem; }
   .tecla { display: none; }        /* não existe tecla F1 em celular */
+
+  /* No celular o volume desce para uma linha só dele, largura inteira. Espremido
+     numa célula de 90px o traço ficaria com uns 60px de curso útil, e acertar
+     uma posição nisso com o dedo é sorte, não controle. A altura da moldura é
+     medida no JS, então o console e o avatar acompanham a quebra sozinhos. */
+  .chrome-som {
+    flex-basis: 100%;
+    order: 1;
+    border-left: 0;
+    border-top: 1px solid var(--verde-baixo);
+  }
+  .chrome-som .btn { flex: 0 0 auto; }
+  .volume { margin-inline: var(--e3); }
 
   .arvore :is(li, .projeto) { padding-left: 2.5ch; }
   .arvore ul { padding-left: .5ch; }

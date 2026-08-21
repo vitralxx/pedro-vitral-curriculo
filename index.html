@@ -28,9 +28,17 @@
   <button class="btn" id="btn-modo" type="button" hidden aria-pressed="false">
     <span class="tecla">F2</span> MODO: RETRO
   </button>
-  <button class="btn" id="btn-som" type="button" hidden aria-pressed="false">
-    <span class="tecla">F3</span> SOM: OFF
-  </button>
+  <!-- O botão e o volume andam juntos porque são o mesmo controle visto de dois
+       jeitos: um liga, o outro dosa. Ficam num grupo para que no celular os dois
+       possam descer para uma linha só, larga o bastante para o dedo. -->
+  <div class="chrome-som">
+    <button class="btn" id="btn-som" type="button" hidden aria-pressed="false">
+      <span class="tecla">F3</span> SOM: ON
+    </button>
+    <input class="volume" type="range" id="volume" hidden
+           min="0" max="100" step="5" value="70"
+           aria-label="Volume do som">
+  </div>
 </div>
 
 <header class="topo">
