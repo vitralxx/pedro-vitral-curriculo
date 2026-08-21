@@ -2,6 +2,8 @@
 
 **[vitralxx.github.io/pedro-vitral-curriculo](https://vitralxx.github.io/pedro-vitral-curriculo/)**
 
+![O currículo rodando: um terminal verde sobre fundo escuro, com o comando whoami já emitido e o perfil saindo com guias de árvore. À esquerda, o rosto do VITR0-L4 desenhado em caracteres.](imgs/capa.webp)
+
 Um currículo que funciona como um terminal. Você digita `whoami`, `projects`,
 `skills`, e o conteúdo é emitido na tela, linha a linha. Qualquer coisa que não
 seja um comando vai para o VITR0-L4, um agente que responde perguntas sobre mim

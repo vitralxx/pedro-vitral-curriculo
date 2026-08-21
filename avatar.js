@@ -32,9 +32,41 @@
   const ler = (k, p) => { try { return localStorage.getItem(k) ?? p; } catch { return p; } };
   const gravar = (k, v) => { try { localStorage.setItem(k, v); } catch { /* segue */ } };
 
-  const verde = () =>
-    getComputedStyle(document.documentElement)
-      .getPropertyValue('--verde-medio').trim() || '#4fd98a';
+  /* --------------------------------------------------------------------
+     O rosto no Modo Moderno
+
+     O CRT inteiro é feito para uma tela que brilha no escuro: listra, chuvisco,
+     varredura e cintilação leem como fósforo. Nos mesmos valores sobre fundo
+     claro eles não leem como nada, leem como sujeira, e o rosto vira um borrão
+     cinza numa página limpa.
+
+     Então o Modo Moderno não é só trocar duas cores: é desligar a textura e
+     ficar só com o desenho em caracteres, que é a identidade dele. O chiado
+     não some de todo, só fica raro — máquina velha continua sendo máquina
+     velha, mas em modo moderno ela está bem cuidada.
+     -------------------------------------------------------------------- */
+  const MODERNO = {
+    stripes: 0, noise: 0.05, scanlines: 0, flicker: 0,
+    rgbSplit: false, glitch: 0.30,
+    /* A rampa invertida. Sem ela o rosto sai como um negativo no fundo claro:
+       a rampa mapeia brilho para densidade de caractere, e caractere denso, que
+       em tela escura é o pixel aceso, em papel branco é tinta. O ponto
+       iluminado da bochecha virava a mancha mais escura do desenho. */
+    ramp: '@8%#x*+=-.  ',
+  };
+
+  /* Cor, fundo e textura, lidos do tema que estiver valendo agora. Vai por
+     ÚLTIMO em toda aplicação: assim nenhum preset e nenhum humor consegue
+     reacender a textura do CRT quando o visitante pediu a versão calma. */
+  function tema() {
+    const css = getComputedStyle(document.documentElement);
+    const moderno = document.documentElement.dataset.modo === 'moderno';
+    return {
+      color: css.getPropertyValue('--verde-medio').trim() || '#4fd98a',
+      background: css.getPropertyValue('--fundo').trim() || '#050b07',
+      ...(moderno ? MODERNO : {}),
+    };
+  }
 
   /* --------------------------------------------------------------------
      Dois tamanhos, e a textura acompanha.
@@ -107,9 +139,18 @@
   const rosto = AsciiFace.mount(corpo, {
     ...GRADE, ...PARADO,
     fps: 25, breath: 1.90, blink: 1.20, speechRate: 1.30,
-    gazeX: null, gazeY: null,
-    color: verde(), background: '#000000', state: 'idle',
+    gazeX: null, gazeY: null, state: 'idle',
+    ...tema(),
   });
+
+  /* Qual preset está vestido agora. Existe para o observador de tema conseguir
+     repintar sem saber se ele estava parado, pensando ou falando. */
+  let vestido = PARADO;
+
+  function vestir(preset, extra) {
+    if (preset) vestido = preset;
+    rosto.set({ ...(preset || vestido), ...(extra || {}), ...tema() });
+  }
 
   /* --------------------------------------------------------------------
      Estado
@@ -157,9 +198,7 @@
     gravar('vitr0', 'min');
     clearTimeout(timerFala);
     window.SOM?.zumbido(false);
-    rosto.set(PARADO);
-    rosto.set(SOLTAR_POSE);
-    rosto.set({ state: 'idle' });
+    vestir(PARADO, { ...SOLTAR_POSE, state: 'idle' });
     reavaliar();
   }
 
@@ -177,8 +216,10 @@
     }, { threshold: 0.05 }).observe(slot);
   }
 
-  // Modo Moderno troca a paleta inteira; o rosto acompanha.
-  new MutationObserver(() => rosto.set({ color: verde() }))
+  /* Modo Moderno troca a paleta E a textura; o rosto acompanha as duas. Antes
+     só a cor era atualizada, e o fundo continuava preto — um retângulo escuro
+     grudado numa página clara. */
+  new MutationObserver(() => vestir())
     .observe(document.documentElement, {
       attributes: true, attributeFilter: ['data-modo']
     });
@@ -221,8 +262,7 @@
       if (!aberto) abrir(false);
 
       clearTimeout(timerFala);
-      rosto.set(PENSANDO);
-      rosto.set(SOLTAR_POSE);     // pensar tem pose própria, não a do humor
+      vestir(PENSANDO, SOLTAR_POSE);   // pensar tem pose própria, não a do humor
       rosto.think(PENSANDO_MAX);
       window.SOM?.zumbido(true);
 
@@ -258,9 +298,10 @@
       window.SOM?.zumbido(false);   // parou de procurar
       window.SOM?.bip();
       slot.dataset.onde = 'fala';
-      // FALANDO primeiro, humor por cima: o humor é camada, não substituto
-      rosto.set(FALANDO);
-      rosto.set(HUMORES[humor] || HUMORES.respondeu);
+      /* FALANDO como base, a pose solta por cima, e o humor por último: o humor
+         é camada, não substituto. SOLTAR_POSE antes dele garante que a
+         sobrancelha do humor anterior não sobreviva quando o novo não tem uma. */
+      vestir(FALANDO, { ...SOLTAR_POSE, ...(HUMORES[humor] || HUMORES.respondeu) });
       rosto.say(dura);
       clearTimeout(timerFala);
       timerFala = setTimeout(() => this.calar(), dura);
@@ -271,9 +312,8 @@
     calar() {
       clearTimeout(timerFala);
       window.SOM?.zumbido(false);
-      rosto.set(PARADO);
-      rosto.set(SOLTAR_POSE);     // devolve a sobrancelha ao automático
-      rosto.set({ state: 'idle' });
+      // SOLTAR_POSE devolve a sobrancelha ao automático
+      vestir(PARADO, { ...SOLTAR_POSE, state: 'idle' });
     },
 
     /* Volta para o lado do console. Quem chama é o terminal, quando começa a

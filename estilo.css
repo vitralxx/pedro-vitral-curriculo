@@ -929,7 +929,10 @@ html.js #fonte { display: none; }
     display: block;
     border: 1px solid var(--verde-baixo);
     border-top: 0;
-    background: #000;
+    /* Segue o tema. Fixo em preto, o rosto virava um retângulo escuro colado
+       numa página clara no modo moderno. O JS pinta o mesmo valor por dentro
+       do canvas; este aqui cobre o instante antes do primeiro quadro. */
+    background: var(--fundo);
     transition: width .25s ease-out, height .25s ease-out;
   }
 
@@ -1050,11 +1053,30 @@ html[data-modo="moderno"] {
 html[data-modo="moderno"] body::before,
 html[data-modo="moderno"] body::after { display: none; }
 
-/* Sem monoespaçada, o alinhamento de caractere não vale mais: marcador comum */
-html[data-modo="moderno"] .arvore :is(li, .projeto)::before { content: "•" / ""; }
-html[data-modo="moderno"] .arvore :is(li, .projeto):last-child::before { content: "•" / ""; }
-html[data-modo="moderno"] .arvore :is(li, .projeto)::after { content: none; }
-html[data-modo="moderno"] .arvore :is(li, .projeto) { padding-left: 2ch; }
+/* Sem monoespaçada o alinhamento de caractere não vale mais, então galho e
+   tronco viram um marcador comum.
+
+   Os `:not(.tec li)` e `:not(:last-child)` abaixo repetem a forma exata dos
+   seletores do modo retrô, e não são enfeite: são o que faz o override
+   funcionar. A regra do tronco, lá em cima, é
+
+       .arvore :is(li, .projeto):not(.tec li):not(:last-child)::after
+
+   e cada `:not()` pesa como o seu argumento mais forte. Sem repeti-los aqui, o
+   seletor moderno ficava com especificidade MENOR do que a regra que estava
+   tentando desligar, e a linha vertical continuava desenhada por cima das
+   bolinhas no modo claro.
+
+   O `:not(.tec li)` conserta um segundo defeito no mesmo lugar: o modo retrô
+   exclui as etiquetas de tecnologia das guias de árvore, e o moderno as
+   reincluía sem querer, botando bolinha em cada etiqueta. */
+html[data-modo="moderno"] .arvore :is(li, .projeto):not(.tec li)::before { content: "•" / ""; }
+html[data-modo="moderno"] .arvore :is(li, .projeto):not(.tec li):last-child::before { content: "•" / ""; }
+html[data-modo="moderno"] .arvore :is(li, .projeto):not(.tec li):not(:last-child)::after {
+  content: none;
+  border-left: 0;
+}
+html[data-modo="moderno"] .arvore :is(li, .projeto):not(.tec li) { padding-left: 2ch; }
 
 html[data-modo="moderno"] :is(.cmd, .prompt, .campo input, .chip, .btn) {
   font-family: ui-monospace, "Consolas", monospace;
@@ -1137,9 +1159,14 @@ html[data-modo="moderno"] h3 { letter-spacing: .04em; }
   summary::before { content: "" / ""; }
   summary { border-bottom: 1px solid #000 !important; }
 
-  /* Guias de árvore não fazem sentido em papel */
-  .arvore :is(li, .projeto)::before { content: "•" / ""; color: #000; }
-  .arvore :is(li, .projeto)::after { content: none; }
+  /* Guias de árvore não fazem sentido em papel. Mesma armadilha de
+     especificidade do modo moderno: sem repetir os :not() do seletor original,
+     o tronco vertical sobrevive à impressão. */
+  .arvore :is(li, .projeto):not(.tec li)::before { content: "•" / ""; color: #000; }
+  .arvore :is(li, .projeto):not(.tec li):not(:last-child)::after {
+    content: none;
+    border-left: 0;
+  }
 
   .arvore .tec li { border-color: #666; color: #333; }
 

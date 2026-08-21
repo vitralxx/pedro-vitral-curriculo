@@ -26,6 +26,7 @@
     speechRate: 1,
     // --- pose manual (usados quando o auto correspondente está em 0) ---
     mouthOpen: null, gazeX: null, gazeY: null, brow: null,
+    ramp: null,      // null = a rampa padrão; passe a invertida em fundo claro
     paused: false
   };
 
@@ -41,6 +42,10 @@
            Math.pow(Math.abs((ny - (oy || 0)) / b), n);
   }
 
+  /* Do vazio ao cheio. Em tela escura o caractere denso é o pixel ACESO, então
+     brilho alto vira "@". Num fundo claro isso inverte de sentido: denso passa
+     a ser tinta, e o ponto iluminado do rosto sairia escuro, como um negativo.
+     Por isso a rampa é substituível — ver `ramp` nos DEFAULTS. */
   var RAMP = "  .-=+*x#%8@";
   var GLITCH_CHARS = "@#%8*+=~-:/\\|<>";
 
@@ -123,8 +128,9 @@
     if (y % 2 === 1) b -= p.stripes * 0.38;
     b += (hash(x, y) - 0.5) * p.noise;
 
-    var i = Math.round(clamp(b, 0, 1) * (RAMP.length - 1));
-    return RAMP.charAt(i);
+    var rampa = p.ramp || RAMP;
+    var i = Math.round(clamp(b, 0, 1) * (rampa.length - 1));
+    return rampa.charAt(i);
   }
 
   function buildRows(p, d) {
